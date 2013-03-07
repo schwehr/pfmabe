@@ -1,0 +1,47 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+export LD_LIBRARY_PATH=$PFM_LIB:$LD_LIBRARY_PATH
+
+cd targetlib
+
+make
+if [ $? != 0 ];then
+    exit -1
+fi
+cp libstarget.a $PFM_LIB
+rm libstarget.a
+
+
+cp CNCTDocument.hpp $PFM_INCLUDE
+cp MIW.h $PFM_INCLUDE
+cp targetlib.h $PFM_INCLUDE
+
+
+cd ../schema
+
+cp metocatts.xsd $PFM_BIN
+cp metocTypes.xsd $PFM_BIN
+cp MIWTarget.xsd $PFM_BIN
+
+
+
+
+##   Check for x86_64 system
+#CHECK64=`uname -a | grep x86_64 | cut -d" " -f 12`
+#if [ $CHECK64 ]; then
+#    make -f Makefile.64bit
+#    mv libtarget.a /usr/local/lib
+#else
+#    make -f Makefile.32bit
+#    mv libtarget.so /usr/local/lib
+#fi
+
+

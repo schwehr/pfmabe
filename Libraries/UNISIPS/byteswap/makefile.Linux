@@ -1,0 +1,21 @@
+#
+#  bytes swapping function makefile for Linux 
+#
+CC      = gcc
+CFLAGS = -O
+
+
+
+all:
+	@make -f makefile.Linux clean
+	@make -f makefile.Linux bytes2func.o
+	@echo " "
+
+bytes2func.o:	
+	$(CC) $(CFLAGS) -c $*.c
+	
+
+clean:
+	rm -f *.o *.a
+	
+			

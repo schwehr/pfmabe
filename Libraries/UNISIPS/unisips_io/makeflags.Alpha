@@ -1,0 +1,11 @@
+#
+# unisips_io library makefile (New UNISIPS Format)
+#
+#
+# Linux Make flags
+#
+
+CC = gcc
+CFLAGS = -O -ansi -I$(UNISIPS_INCLUDE) -I$(BYTE_SWAP_INCLUDE)
+ARFLAGS=-r
+RANLIB =ranlib

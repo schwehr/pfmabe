@@ -1,0 +1,133 @@
+Efforts have been undertaken by IVS and SAIC to reduce the time required to build a PFM. 
+The main approach was to reduce the disk I/O during the loading process.  The process flow
+was re-oriented to minimize fseeks and to group freads and fwrites to reduce head movement.
+In addition, unnecessary mallocs were eliminated.  Different buffering schemes were tested
+to determine the optimum configuration for speed.  
+
+Testing was conducted at three levels:
+
+- short-term tests (tens of minutes) for proof of concept and code debugging,
+- mid-term tests (3-4 hours on an isolated machine; ~200M soundings, ~160M bins) to get reliable metrics.
+- long-term tests (40-70 hours on an isolated machine; ~1500M soundings, ~300M bins) for full integrated testing.
+
+An isolated machine has no crond or network services running.
+
+The recommended changes (for PFM v5.02, see below) do not require a format change to PFM.  New API calls
+have been added to implement the 'cached' functionality.  One optimization has been
+applied to the PFM library's existing functions (compute_index) and requires an API change.
+
+Supplemental changes are recommended for a later release of PFM (v5.03) that do require a format change to
+PFM and, therefore, will be version-dependent.
+
+Please review these changes, and the attached code, and comment at will.
+
+
+
+Changes to PFM v5.01 by SAIC and IVS to be released as PFM v5.02 in May, 2007
+=============================================================================
+
+* Changes to pfm_io.c, the main PFM routines.
+   * Changed compute_index() to pass the bin header by reference instead
+     of by value.  This impacts processing time proportional to the
+     number of soundings input.  REQUIRES API change.
+
+   * Created a function called update_cov_map() that updates the
+     coverage map as detailed in write_bin_buffer().
+
+   * Created write_bin_buffer_only() that does not have a call to
+     update_cov_map() which write_bin_buffer() hss.  Put this call in
+     recompute_bin_value() instead.  This reduces the number of times
+     that the coverage map needs to be updated during loading and seems
+     to have a large impact.
+
+   * Marked write_bin_buffer() as deprecated.  There is no need for
+     two functions that do nearly the same thing.  This function should
+     be removed in a future version of the API.
+
+   * Added the BIN_RECORD_SUMMARY and DEPTH_SUMMARY structures to the
+     pfm.h file for use by the cached IO functions (pfm_cached_io.c).
+
+   * Moved BIN_RECORD_OFFSETS structure to pfmP.h, private PFM data
+     include file.
+
+   * Optimized the read_cov_map_index() function to allocate the buffer
+     for reading coverage map rows only once.
+
+   * Create pack_bin_record() and pack_depth_record() functions to clean
+     up the code and provide a mechanism for the caching functions to
+     use the same routines.
+
+   * Modified the 'bin_inside' function to call PointsInsidePolygon instead of 'angle'.
+     This significantly speeds up the bin_inside call.
+
+   * For experimental purposes, added bin density calculations:
+     average, standard deviation and distribution count.
+
+
+* Changes to huge_io.c, the underlying IO routines.
+
+   * Added code to allow lazy fseeks:  if the file pointer is already
+     positioned where requested, no fseek() is done.  To provide correct
+     semantics for switching between reads and writes, the state of the
+     last operation (read or write) is tracked so that an fseek call can
+     be made.
+
+   * The code for lazy fseeks is enabled or disabled by a #define.
+
+
+* Additional code, pfm_cached_io.c.  New prototypes added to pfm.h.
+
+   * A caching mechanism for loading depth records was implemented.  It
+     uses calls similar in name and parameters to the traditional PFM
+     loading calls.  The mapping is as follows:
+
+         open_pfm_file()       --->  open_cached_pfm_file()
+         add_depth_record()    --->  add_cached_depth_record()
+         recompute_bin_value() --->  recompute_cached_bin_value()
+         close_pfm_file()      --->  close_cached_pfm_file()
+
+   * Several functions collect data about the cache operation:
+
+         get_cache_misses():  Number of times a bin had to be loaded
+                              into cache.
+         get_cache_hits():    Number of times a bin was found already
+                              loaded into cache.
+         get_cache_flushes(): Number of times the cache was written
+                              to disk.
+         get_cache_peak_size():  Largest size that the cache grew to
+                                 during the run in bytes.
+   
+   * The cache has several parameters, such as the number of rows and
+     columns, the maximum size of the cache in bytes and the location in
+     the cache to start loading bins. 
+
+   * Added the 'set_cache_size' function to allow loader to control size of cache and/or
+     the center point for the cache.  The loader (or user) may have knowledge of the data
+     that would determine an optimum cache size or centering scheme (TBD).
+
+   * Added the 'set_use_cov_flag' function to allow loader to control whether a coverage flag
+     will saved in the cache and flushed.
+
+   * Added the 'set_cached_cov_flag' function that allows the loader to set the coverage flag
+     in the cached BIN_SUMMARY structure.
+
+   * Added the 'flush_cov_flag' function to write the coverage flags in the BIN_SUMMARY cache
+     to the bin file in the PFM.
+
+
+Changes to PFM v5.02 by SAIC and IVS to be released as PFM v5.03 in Summer 2007
+===============================================================================
+
+* Modify 'write_cached_depth_summary' function to write all depths in a bin as one block 
+  instead of a fixed record length for the 'physical record'.  This requires a format change
+  to add a count of the number of depth records in a physical record.  We may also want to
+  move the continuation pointer out of the bit_packed record and put it immediately after the 
+  record count and before the bit_packed depths to facilitate access.
+
+* Move the coverage map to a separate file to facilitate access.
+
+
+???????????????? Additional changes ????????????????????
+
+
+

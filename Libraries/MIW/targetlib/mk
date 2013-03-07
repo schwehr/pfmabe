@@ -1,0 +1,60 @@
+SYS=`uname -s`
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+else
+    DEFS="WIN32 NVWIN3X"
+    CONF=staticlib
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f starget.pro Makefile *.o moc*
+
+
+$QTDIR/bin/qmake -project -t lib -o starget.tmp
+cat >starget.pro <<EOF
+INCLUDEPATH += /c/PFM_ABEv6.2-2/include
+DEFINES += $DEFS
+VERSION = 2.0.0
+CONFIG += $CONF
+EOF
+
+cat starget.tmp >>starget.pro
+rm starget.tmp
+
+echo $WINMAKE
+
+$QTDIR/bin/qmake -o Makefile
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    mv libstarget.a $PFM_LIB
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    cp $WINMAKE/libstarget.a $PFM_LIB
+    rm $WINMAKE/libstarget.a
+fi
+
+
+cp CNCTDocument.hpp $PFM_INCLUDE
+cp MIW.h $PFM_INCLUDE
+cp targetlib.h $PFM_INCLUDE
+
+
+cd ../../schema
+
+cp metocatts.xsd $PFM_BIN
+cp metocTypes.xsd $PFM_BIN
+cp MIWTarget.xsd $PFM_BIN

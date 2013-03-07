@@ -1,0 +1,16 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/rotate.xpm</file>
+        <file>icons/prefs.xpm</file>
+        <file>icons/scaled.xpm</file>
+        <file>icons/freeze.xpm</file>
+        <file>icons/charts_pic.png</file>
+        <file>icons/quit.xpm</file>
+        <file>icons/fileopen.xpm</file>
+        <file>icons/brighten.xpm</file>
+        <file>icons/darken.xpm</file>
+        <file>icons/stickpin.xpm</file>
+        <file>icons/stickpin_cursor.xpm</file>
+</qresource>
+ </RCC>

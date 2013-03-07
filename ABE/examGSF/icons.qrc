@@ -1,0 +1,11 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/fileopen.xpm</file>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/quit.xpm</file>
+        <file>icons/zoom_cursor.xpm</file>
+        <file>icons/other.xpm</file>
+        <file>icons/exam_gsf.xpm</file>
+        <file>icons/prefs.xpm</file>
+ </qresource>
+ </RCC>

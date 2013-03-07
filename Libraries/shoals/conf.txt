@@ -1,0 +1,97 @@
+From - Thu Jan 27 06:02:38 2000
+Received: from comsrvr.optech.on.ca (optech.on.ca [216.208.29.130]) by navont4.navo.navy.mil with SMTP (Microsoft Exchange Internet Mail Service Version 5.5.2650.21)
+	id CZ0G998L; Wed, 26 Jan 2000 08:56:21 -0600
+Received: by COMSRVR with Internet Mail Service (5.5.2650.21)
+	id <DSPL6QKM>; Wed, 26 Jan 2000 09:56:32 -0500
+Message-ID: <11E3973D1E78D311A5B400508B4A70CE0637B5@COMSRVR>
+From: David REID <david@optech.on.ca>
+To: "Jan C. Depner" <depnerj@navo.navy.mil>
+Subject: RE: Shoals data
+Date: Wed, 26 Jan 2000 09:56:15 -0500
+MIME-Version: 1.0
+X-Mailer: Internet Mail Service (5.5.2650.21)
+Content-Type: text/plain;
+	charset="iso-8859-1"
+X-Mozilla-Status: 9011
+X-Mozilla-Status2: 00000000
+X-UIDL: AAA8qSPAAAQcp+5XACwpfGh0Z/HVtZBe
+
+Jan,
+ 
+Here it is....
+ 
+As you noticed, there are a lot of them.  They are as 
+follows (all from outputs):
+ 
+    ab_dep_conf        -This is a confidence for the main depth 
+        (reported_depth and tide_cor_depth).  It is on a scale of 1 
+        to 99.  The cutoff for producing a depth is 50.  Anything 
+        lower will not have a depth (-998 which is for no depth).  
+        In theory, the value is supposed to be one centimeter of 
+        uncertainty for each point in the confidence.  I believe 
+        that they keep (unload) all data with a value of 70 or 
+        better in the field.
+
+    sec_ab_dep_conf    -Same as above but is for the second depth.
+
+    otf_abd_conf       -As above but for when in "OTF" mode.  This
+        is when they have used OTF GPS data for processing instead 
+        of the standard DGPS.
+
+    otf_sec_abd_conf   -As above but for the second OTF depth
+ 
+    depth_conf         -This is a coded depth confidence.  I don't
+        think you want to get into this one.  
+
+    sec_depth_conf     -As above but for the second depth
+ 
+David
+ 
+David Reid
+Software Designer/Programmer
+Optech Inc.
+100 Wildcat Road
+North York, Ontario
+M3J 2Z9
+Phone: (416)661-5904
+Fax:   (416)661-4168
+Email: david@optech.on.ca 
+
+
+    
+
+-----Original Message-----
+From: Jan C. Depner [mailto:depnerj@navo.navy.mil]
+Sent: Wednesday, January 26, 2000 7:52 AM
+To: David Reid
+Subject: Shoals data
+
+
+Dave, 
+
+    Can you give me a run down on the confidence values in the output file? 
+
+
+Jan 
+
+
+-- 
+
+
+
+Jan C. Depner
+
+Code N341
+
+Naval Oceanographic Office
+
+Stennis Space Center MS, 39522
+
+228.688.5609
+
+
+
+For good blues...
+
+http://www.mp3.com/bluesbakers <http://www.mp3.com/bluesbakers> 
+  

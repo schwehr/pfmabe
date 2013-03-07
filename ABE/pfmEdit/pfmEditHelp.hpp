@@ -1,0 +1,913 @@
+
+/*********************************************************************************************
+
+    This is public domain software that was developed by the U.S. Naval Oceanographic Office.
+
+    This is a work of the US Government. In accordance with 17 USC 105, copyright protection
+    is not available for any work of the US Government.
+
+    Neither the United States Government nor any employees of the United States Government,
+    makes any warranty, express or implied, without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, or assumes any liability or
+    responsibility for the accuracy, completeness, or usefulness of any information,
+    apparatus, product, or process disclosed, or represents that its use would not infringe
+    privately-owned rights. Reference herein to any specific commercial products, process,
+    or service by trade name, trademark, manufacturer, or otherwise, does not necessarily
+    constitute or imply its endorsement, recommendation, or favoring by the United States
+    Government. The views and opinions of authors expressed herein do not necessarily state
+    or reflect those of the United States Government, and shall not be used for advertising
+    or product endorsement purposes.
+
+*********************************************************************************************/
+
+
+/****************************************  IMPORTANT NOTE  **********************************
+
+    Comments in this file that start with / * ! or / / ! are being used by Doxygen to
+    document the software.  Dashes in these comment blocks are used to create bullet lists.
+    The lack of blank lines after a block of dash preceeded comments means that the next
+    block of dash preceeded comments is a new, indented bullet list.  I've tried to keep the
+    Doxygen formatting to a minimum but there are some other items (like <br> and <pre>)
+    that need to be left alone.  If you see a comment that starts with / * ! or / / ! and
+    there is something that looks a bit weird it is probably due to some arcane Doxygen
+    syntax.  Be very careful modifying blocks of Doxygen comments.
+
+*****************************************  IMPORTANT NOTE  **********************************/
+
+
+
+QString exitSaveText = 
+  pfmEdit::tr ("<img source=\":/icons/exit_save.xpm\"> Click this button to save changes to the PFM structure and "
+               "then exit from the editor.");
+QString exitMaskText = 
+  pfmEdit::tr ("<img source=\":/icons/exit_mask.xpm\"> Click this button to save changes to the PFM structure and "
+               "then exit from the editor.  In addition, the area that was edited will be marked as a filter "
+               "masked area in pfmView.");
+QString exitNoSaveText = 
+  pfmEdit::tr ("<img source=\":/icons/exit_no_save.xpm\"> Click this button to discard changes and then exit from "
+               "the editor.");
+
+QString resetText = 
+  pfmEdit::tr ("<img source=\":/icons/reset_view.xpm\"> Click this button to redraw the displayed area in plan view "
+               "with the original bounds and all masking removed.");
+
+
+QString editRectText = 
+  pfmEdit::tr ("<img source=\":/icons/edit_rect.xpm\"> Click this button to switch the default mode to 3D rectangle "
+               "edit.<br><br>"
+               "After clicking the button the cursor will change to the edit rectangle cursor "
+               "<img source=\":/icons/edit_rect_cursor.xpm\">.  Click the left mouse button to define a starting point "
+               "for a rectangle.  Move the mouse to define the edit bounds.  Left click again to start the 3D editor.  "
+               "To abort the operation click the middle mouse button.<br><br> "
+	       "<b>NOTE: This is a one shot function.  That is, once you select or discard an area the function will "
+	       "revert to the active function prior to selecting this mode.  Also, this function is only available in "
+	       "plan view.</b>");
+QString editPolyText = 
+  pfmEdit::tr ("<img source=\":/icons/edit_poly.xpm\"> Click this button to switch the default mode to 3D polygon "
+               "edit.<br><br>"
+	       "After clicking the button the cursor will change to the edit polygon cursor "
+               "<img source=\":/icons/edit_poly_cursor.xpm\">.  Click the left mouse button to define a starting point "
+               "for a polygon.  Moving the mouse will draw a line.  Left click to define the next vertex of the polygon.  "
+               "Double click to define the last vertex of the polygon and begin the edit operation.  "
+	       "To abort the operation click the middle mouse button.<br><br> "
+	       "<b>NOTE: This is a one shot function.  That is, once you select or discard an area the function will "
+	       "revert to the active function prior to selecting this mode.  Also, this function is only available in "
+	       "plan view.</b>");
+
+QString planViewText = 
+  pfmEdit::tr ("<img source=\":/icons/plan_view.xpm\"> Click this button to switch to plan view of the displayed "
+               "area.");
+QString eastViewText = 
+  pfmEdit::tr ("<img source=\":/icons/east_view.xpm\"> Click this button to switch to an east view of the displayed "
+               "area.  This will simulate looking at the data from the eastern edge of the displayed "
+               "area with the Y axis representing the Z value.  In this view colors may represent "
+               "different lines or the distance from the viewer.<br><br>"
+               "<b>IMPORTANT NOTE: In this view you can change the angle of view by pressing the left or right "
+               "arrow keys.  The view will change by the amount set in the <i>Rotation increment</i> setting "
+               "of the preferences dialog <img source=\":/icons/prefs.xpm\">.</b>");
+QString southViewText = 
+  pfmEdit::tr ("<img source=\":/icons/east_view.xpm\"> Click this button to switch to a south view of the displayed "
+               "area.  This will simulate looking at the data from the southern edge of the displayed "
+               "area with the Y axis representing the Z value.  In this view colors may represent "
+               "different lines or the distance from the viewer.<br><br>"
+               "<b>IMPORTANT NOTE: In this view you can change the angle of view by pressing the left or right "
+               "arrow keys.  The view will change by the amount set in the <i>Rotation increment</i> setting "
+               "of the preferences dialog <img source=\":/icons/prefs.xpm\">.</b>");
+QString selectViewText = 
+  pfmEdit::tr ("<img source=\":/icons/select_view.xpm\"> Click this button to allow you to select a view direction.  "
+               "This is similar to the east and south views except that you get to select the angle of "
+               "view.  When selected and the cursor is moved into the display area, an arrow will "
+               "appear.  Align the arrow in the desired direction of view and left click to change the "
+               "view.  The view angle arrow will remain and the program will remain in select view mode until "
+               "you either click the middle mouse button or right click and select one of the menu options.  In "
+               "this view colors may represent different lines or the distance from the viewer.<br><br>"
+               "<b>IMPORTANT NOTE: In this view you can change the angle of view by pressing the left or right "
+               "arrow keys.  The view will change by the amount set in the <i>Rotation increment</i> setting "
+               "of the preferences dialog <img source=\":/icons/prefs.xpm\">.</b>");
+
+QString geoText = 
+  pfmEdit::tr ("If a GeoTIFF name was passed to pfmEdit on the command line you can use this button to toggle "
+               "display of the GeoTIFF on and off.");
+
+QString planViewByLineText = 
+  pfmEdit::tr ("This button toggles between color by line mode and color by depth mode in plan view.  When selected, "
+               "points are colored based on the line and the color by line icon "
+               "<img source=\":/icons/plan_view_by_line.xpm\"> is displayed.<br><br>"
+               "When unselected, points are colored based on the depth and the color by depth icon "
+               "<img source=\":/icons/plan_view_by_depth.xpm\"> is displayed.");
+
+QString altViewByLineText = 
+  pfmEdit::tr ("This button toggles between color by line mode and color by distance mode in any of the alternate "
+               "(non-plan) views.  When selected, points are colored based on the line and the color by line icon "
+               "<img source=\":/icons/plan_view_by_line.xpm\"> is displayed.<br><br>"
+               "When unselected, points are colored based on the distance from the viewer and the color by distance icon "
+               "<img source=\":/icons/plan_view_by_depth.xpm\"> is displayed.");
+
+QString redrawText = 
+  pfmEdit::tr ("<img source=\":/icons/redraw.xpm\"> Click this button to redraw the displayed area.");
+QString autoRedrawText = 
+  pfmEdit::tr ("<img source=\":/icons/autoredraw.xpm\"> Click this button to force a redraw of the display "
+               "after each edit operation.");
+
+QString displayFeatureText = 
+  pfmEdit::tr ("<img source=\":/icons/display_all_feature.png\"> Click this button to select the feature display mode.  "
+               "You can highlight features that have descriptions or remarks containing specific text strings by setting "
+               "the feature search string in the preferences dialog <img source=\":/icons/prefs.xpm\">.");
+QString displayChildrenText = 
+  pfmEdit::tr ("<img source=\":/icons/displayfeaturechildren.xpm\"> Click this button to display feature sub-records.  "
+               "Feature sub-records are features that have been grouped under a master feature record.  Features "
+               "can be grouped and un-grouped in the edit feature dialog of pfmView.");
+QString displayFeatureInfoText = 
+  pfmEdit::tr ("<img source=\":/icons/displayfeatureinfo.xpm\"> Click this button to write the description and "
+               "remarks fields of features next to any displayed features.  This button is "
+               "meaningless if <b>Flag Feature Data</b> is set to not display features "
+               "<img source=\":/icons/display_no_feature.png\">.");
+QString displayFeaturePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/displayfeaturepoly.xpm\"> Click this button to draw any associated polygonal "
+               "areas with the displayed features.  This button is "
+               "meaningless if <b>Flag Feature Data</b> is set to not display features "
+               "<img source=\":/icons/display_no_feature.png\">.");
+QString verifyFeaturesText = 
+  pfmEdit::tr ("<img source=\":/icons/verify_features.png\"> Click this button to set all valid, displayed features to a confidence "
+	       "level of 5.  These will be displayed in a different color in the editor and in pfmView.  The only way to <b><i>unverify</i></b> "
+	       "a feature is to edit the feature and manually set the confidence level to a lower value than 5.");
+
+QString displayReferenceText = 
+  pfmEdit::tr ("<img source=\":/icons/displayreference.xpm\"> Click this button to flag reference data.  Reference points "
+               "may or may not be invalid but they are not used for computing the surfaces or as selected soundings.  "
+               "Examples of data that might be flagged as reference data would include fishing nets, floating buoys, "
+               "non-permanent platforms, depth data from sidescan systems, or other data that are valid but not "
+               "normally used as part of the surfaces.");
+QString displayManInvalidText = 
+  pfmEdit::tr ("<img source=\":/icons/display_manually_invalid.png\"> Click this button to display manually invalidated "
+               "data points along with the valid data points.  If you need to differentiate between valid and invalid you "
+               "can use the data flags options to mark invalid data points.<br><br>"
+               "<b>IMPORTANT NOTE: Data that has been marked as invalid using the filter in the editors or the surface "
+               "viewer are marked as MANUALLY invalid.  Since you are reviewing the filter results this is considered manually "
+               "accepting the filter.  Points that are filtered in pfmLoad or that are marked as invalid by other "
+               "software packages (e.g. Optech's GCS) are marked as FILTER invalid.</b>");
+QString displayFltInvalidText = 
+  pfmEdit::tr ("<img source=\":/icons/display_filter_invalid.png\"> Click this button to display filter invalidated "
+               "data points along with the valid data points.  If you need to differentiate between valid and invalid you "
+               "can use the data flags options to mark invalid data points.<br><br>"
+               "<b>IMPORTANT NOTE: Data that has been marked as invalid using the filter in the editors or the surface "
+               "viewer are marked as MANUALLY invalid.  Since you are reviewing the filter results this is considered manually "
+               "accepting the filter.  Points that are filtered in pfmLoad or that are marked as invalid by other "
+               "software packages (e.g. Optech's GCS) are marked as FILTER invalid.</b>");
+QString displayNullText = 
+  pfmEdit::tr ("<img source=\":/icons/display_null.png\"> Click this button to display data points that were loaded "
+               "as NULL values.  This is primarily useful for LIDAR data but it will also display data "
+               "points that fell outside the min/max envelope on load (these were set to NULL).  This "
+               "button is only meaningful if display manually invalid <img source=\":/icons/display_manually_invalid.xpm\"> "
+               "or display filter invalid <img source=\":/icons/display_filter_invalid.xpm\"> is set to on.");
+
+QString displayAllText = 
+  pfmEdit::tr ("<img source=\":/icons/displayall.xpm\"> Click this button to display all lines after selecting "
+               "a single line or a subset of lines to view.");
+
+QString undisplaySingleText = 
+  pfmEdit::tr ("<img source=\":/icons/undisplaysingle.xpm\"> Click this button to turn off the display for a single line.  "
+               "When selected the cursor will become the ArrowCursor.  Move the box and arrow cursor to a point in the line "
+               "that you do not want to display and then left click.  The display will redraw after each left click.  This mode "
+               "will remain active until you switch to another mode.  After selecting lines to be hidden you can "
+               "revert back to displaying all data by pressing the <b>View All</b> button "
+               "<img source=\":/icons/displayall.xpm\">.");
+
+QString displayMultipleText = 
+  pfmEdit::tr ("<img source=\":/icons/displaylines.xpm\"> Click this button to select multiple lines to view.  "
+               "When selected the cursor will become the ArrowCursor.  Move the box and arrow "
+               "cursor to a point in a line that you want to display and then left click to "
+               "select that line to view.  Continue to do this until you have selected all of the lines that you "
+               "wish to view.  Double click to finish selecting lines and redraw the display.  If you decide that "
+               "you don't want to display the lines you can middle click to abort.  After selecting multiple lines "
+               "to view you can revert back to displaying all data by pressing the <b>View All</b> button "
+               "<img source=\":/icons/displayall.xpm\">.<br><br>"
+               "<b>IMPORTANT NOTE: If you would like to select the lines from a list you can do so by selecting the "
+               "obvious option in the right click popup menu.</b>");
+
+QString displayLinesText = 
+  pfmEdit::tr ("<img source=\":/icons/displaylines.xpm\"> Click this button to select one or more lines to view.  "
+               "When selected a dialog will pop up with the list of available lines.  Highlight those that "
+               "you wish to view.  After selecting a line or lines to view you can revert back to "
+               "displaying all data by pressing the <b>View All</b> button <img source=\":/icons/displayall.xpm\">.");
+
+
+QString userText = 
+  pfmEdit::tr ("<img source=\":/icons/user_flag.xpm\"> Click this button acess a pulldown menu allowing you to mark (flag) "
+               "user flagged data points.  The name of the flags as stored in the PFM structure will be displayed in the "
+               "popup menu.  Only one of the user flags can be marked at a time.  If one of the flags is marked its "
+               "name will be displayed in the tooltip for this button.");
+
+
+QString highlightPolyText = 
+  pfmEdit::tr ("<img source=\":/icons/highlight_polygon.xpm\"> Click this button to allow you to select a polygonal area "
+               "inside of which you wish to highlight data points.  When selected the cursor will become the highlight polygon cursor "
+               "<img source=\":/icons/highlight_polygon_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "highlight the data in the polygon simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.<br><br>"
+               "<b>IMPORTANT NOTE: If you would like to delete highlighted data points just press <i>Del</i> or whatever "
+               "hot key that has been set for <i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog.  Conversely, "
+               "if you have invalid data being displayed and you have highlighted some of them you can press <i>Ins</i> or "
+               "whatever hot key that has been set for <i>REJECT FILTER HIGHLIGHTED</i> in the Preferences dialog to validate "
+               "those points.  Also, if you were flagging data (i.e. highlighting by data flag) using this function will "
+               "turn off flagging but won't remove the highlights from the points that you previously flagged.  This allows you "
+               "to use data flagging to delet or restore points.</b>");
+QString clearPolyText = 
+  pfmEdit::tr ("<img source=\":/icons/clear_polygon.xpm\"> Click this button to allow you to select a polygonal area "
+               "inside of which you wish to un-highlight data points.  When selected the cursor will become the clear polygon cursor "
+               "<img source=\":/icons/clear_polygon_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "un-highlight the data in the polygon simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.<br><br>"
+               "<b>IMPORTANT NOTE: If you would like to delete highlighted data points just press <i>Del</i> or whatever "
+               "hot key that has been set for <i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog.  Conversely, "
+               "if you have invalid data being displayed and you have highlighted some of them you can press <i>Ins</i> or "
+               "whatever hot key that has been set for <i>REJECT FILTER HIGHLIGHTED</i> in the Preferences dialog to validate "
+               "those points.  Also, if you were flagging data (i.e. highlighting by data flag) using this function will "
+               "turn off flagging but won't remove the highlights from the points that you previously flagged.  This allows you "
+               "to use data flagging to delet or restore points.</b>");
+QString invertHighlightText = 
+  pfmEdit::tr ("<img source=\":/icons/invert_highlight.png\"> Click this button to invert the highlighted selection.  That is, "
+               "all points that are currently highlighted will be un-highlighted and all points that aren't currently highlighted "
+               "will be highlighted.");
+QString clearHighlightText = 
+  pfmEdit::tr ("<img source=\":/icons/clear_highlight.xpm\"> Click this button to clear all highlighted points from "
+               "the display.<br><br>"
+               "<b>IMPORTANT NOTE: If you were flagging data (i.e. highlighting by data flag) pressing this button will "
+               "turn off flagging.</b>");
+
+QString contourText = 
+  pfmEdit::tr ("<img source=\":/icons/contour.xpm\"> Click this button to toggle drawing of contours.");
+
+
+QString gridText = 
+  pfmEdit::tr ("<img source=\":/icons/grid.xpm\"> Click this button to toggle drawing of the PFM bin grid overlay.");
+
+
+QString unloadText = 
+  pfmEdit::tr ("<img source=\":/icons/unload.xpm\"> This toggle button controls whether pfmEdit will automatically unload "
+               "edits made to the PFM data to the original input files when you save and exit.  If pfmEdit was "
+               "started from Fledermaus this button will be set depending on the DYNAMIC_RELOAD option in the "
+               "PFM bin file header (see Utilities->Display PFM Header in pfmView).");
+
+
+QString prefsText = 
+  pfmEdit::tr ("<img source=\":/icons/prefs.xpm\"> Click this button to change program preferences.  This "
+               "includes colors, contour interval, slice size, minimum Z window size, position "
+               "display format, and all ancillary programs.");
+
+
+QString stopText = 
+  pfmEdit::tr ("<img source=\":/icons/stop.xpm\"> Click this button to cancel drawing of the data.  A much easier "
+               "way to do this though is to click any mouse button in the display area or press any "
+               "key on the keyboard.  The stop button is really just there so that the interface looks "
+               "similar to the viewer and also to provide a place for help on how to stop the drawing.");
+
+
+QString deletePointText = 
+  pfmEdit::tr ("<img source=\":/icons/delete_point.xpm\"> Click this button to select delete subrecord/record/file "
+               "mode.  In this mode you can place the cursor on a subrecord (beam, shot, point) and "
+               "delete the subrecord, the record (ping, shot), or add the file to the delete file queue for removal in "
+               "pfmView.  Press the left mouse button "
+               "to delete the subrecord or the middle mouse button to delete the record.  The display "
+               "will be redrawn after a record delete but not after a subrecord delete.  Information "
+               "about the current point will be displayed in the status bars at the bottom of the "
+               "window.  Double clicking on a point will highlight the point.<br><br>"
+               "Hot keys and action keys are available when in this mode.  Please check the <b>Preferences<b> dialog "
+               "<img source=\":/icons/prefs.xpm\">, specifically the <b>Ancillary Programs</b> dialog, to see what action "
+               "keys are available for each ancillary program.  To find out what the keys do in the ancillary program "
+               "you must use the help in the ancillary program.  You can also run ancillary programs by selecting the "
+               "program from the right click popup menu.  " 
+               "<p><b><i>IMPORTANT NOTE: Only in this mode, ADD_FEATURE mode <img source=\":/icons/addfeature.xpm\">, or "
+               "EDIT_FEATURE mode <img source=\":/icons/editfeature.xpm\"> can you use hot keys to launch ancillary "
+               "programs.</i></b></p>");
+QString deleteRectText = 
+  pfmEdit::tr ("<img source=\":/icons/delete_rect.xpm\"> Click this button to allow you to select a rectangular area "
+               "to invalidate.  When selected the cursor will become the invalidate rectangle cursor "
+               "<img source=\":/icons/delete_rect_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the rectangle anchor point.  Moving the cursor will cause a rectangle to appear.  To finalize the "
+               "rectangle and invalidate the data left click again.  If, at any time during the operation, you wish to "
+               "discard the rectangle and abort the operation simply click the middle mouse button or right click and "
+               "select one of the menu options.");
+QString deletePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/delete_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "to invalidate.  When selected the cursor will become the invalidate polygon cursor "
+               "<img source=\":/icons/delete_poly_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "invalidate the data in the polygon simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.");
+QString keepPolyText = 
+  pfmEdit::tr ("<img source=\":/icons/keep_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "and invalidate all data <b>outside</b> of the polygon.  When selected the cursor will "
+               "become the invalidate outside polygon cursor <img source=\":/icons/keep_poly_cursor.xpm\">.  Left "
+               "clicking on a location will cause that point to be the polygon start point.  To close the polygon and "
+               "invalidate the data outside of the polygon simply left click again.  If, at any time during the "
+               "operation, you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.");
+QString restoreRectText = 
+  pfmEdit::tr ("<img source=\":/icons/restore_rect.xpm\"> Click this button to allow you to select a rectangular area "
+               "in which to restore invalidated data.  When selected the cursor will become the restore rectangle "
+               "cursor <img source=\":/icons/restore_rect_cursor.xpm\">.  Left clicking on a location will cause that "
+               "point to be the rectangle anchor point.  Moving the cursor will cause a rectangle to appear.  To finalize "
+               "the rectangle and restore the invalid data simply left click again.  If, at any time during the "
+               "operation, you wish to discard the rectangle and abort the operation simply click the middle mouse button "
+               "or right click and select one of the menu options.");
+QString restorePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/restore_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "in which to restore invalidated data.  When selected the cursor will become the restore polygon cursor "
+               "<img source=\":/icons/restore_poly_cursor.xpm\">.  Left clicking on a location will cause that point to "
+               "be the polygon start point.  To close the polygon and restore invalid data in the polygon simply left "
+               "click again.  If, at any time during the operation, you wish to discard the polygon and abort the "
+               "operation simply click the middle mouse button or right click and select a menu option.");
+
+QString referencePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/reference_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "in which to set all points to reference points.  Reference points may or may not be invalid but they are "
+               "not used for computing the surfaces or as selected soundings.  Examples of data that might be flagged as "
+               "reference data would include fishing nets, floating buoys, non-permanent platforms, depth data from "
+               "sidescan systems, or other data that are valid but not normally used as part of the surfaces.  "
+               "When selected the cursor will become the set reference polygon cursor "
+               "<img source=\":/icons/reference_poly_cursor.xpm\">.  Left clicking on a location will cause that point to "
+               "be the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "set the data in the polygon to reference simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.<br><br>"
+               "<b>IMPORTANT NOTE: There is an extra right click popup menu option for this mode.  It allows you to delete "
+               "all non-masked (visible) or non-transparent reference points.  There is a stupid, Micro$oft-like <i>'Do "
+               "you really want to do this'</i> type of message when you use that option.<b>");
+QString unreferencePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/unreference_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "in which to set all reference points to non-reference points.  Reference points may or may not be "
+               "invalid but they are not used for computing the surfaces or as selected soundings.  Examples of data "
+               "that might be flagged as reference data would include fishing nets, floating buoys, non-permanent "
+               "platforms, depth data from sidescan systems, or other data that are valid but not normally used as part "
+               "of the surfaces.  When selected the cursor will become the unset reference polygon cursor "
+               "<img source=\":/icons/unreference_poly_cursor.xpm\">.  Left clicking on a location will cause that point "
+               "to be the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "set the reference data in the polygon to non-reference data simply left click again.  If, at any time "
+               "during the operation, you wish to discard the polygon and abort the operation simply click the middle "
+               "mouse button or right click and select a menu option.<br><br>"
+               "<b>IMPORTANT NOTE: There is an extra right click popup menu option for this mode.  It allows you to delete "
+               "all non-masked (visible) or non-transparent reference points.  There is a stupid, Micro$oft-like <i>'Do "
+               "you really want to do this'</i> type of message when you use that option.<b>");
+QString hotkeyPolyText = 
+  pfmEdit::tr ("<img source=\":/icons/hotkey_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "in which to run an ancillary program that is started with a hotkey.  When selected the cursor will "
+               "become the hotkey polygon cursor <img source=\":/icons/hotkey_poly_cursor.xpm\">.  Left clicking on a "
+               "location will cause that point to be the polygon start point.  Moving the cursor will draw a continuous "
+               "line.  To close the polygon in preparation for pressing a hotkey simply left click again.  After defining "
+               "the polygon just press the hotkey that is associated with the ancillary program that you wish to run or select "
+               "the program from the right click popup menu.  You can also invalidate groups of features using this function.<br>"
+               "To see the available ancillary programs look under preferences <img source=\":/icons/prefs.xpm\">.  If, "
+               "at any time during the operation, you wish to discard the polygon and abort the operation simply click "
+               "the middle mouse button or right click and select a menu option.");
+
+QString addFeatureText = 
+  pfmEdit::tr ("<img source=\":/icons/addfeature.xpm\"> Click this button to allow you to add a feature to an existing "
+               "BFD feature file.  If a feature file does not exist you will be given the option of creating "
+               "one.  When selected the cursor will become the add feature cursor "
+               "<img source=\":/icons/add_feature_cursor.xpm\">.  "
+               "The box cursor will snap to the nearest point.  You may place a feature by left clicking on the desired "
+               "point.  When you left click a feature edit dialog will appear for you to modify.  If, at any time "
+               "during the operation, you wish to abort the operation simply click the middle mouse button or right "
+               "click and select one of the menu options.<br><br>"
+               "Hot keys and action keys are available when in this mode.  Please check the <b>Preferences<b> dialog "
+               "<img source=\":/icons/prefs.xpm\">, specifically the <b>Ancillary Programs</b> dialog, to see what action "
+               "keys are available for each ancillary program.  To find out what the keys do in the ancillary program "
+               "you must use the help in the ancillary program." 
+               "<p><b><i>IMPORTANT NOTE: Only in this mode, DELETE_POINT mode <img source=\":/icons/delete_point.xpm\">, "
+               "or EDIT_FEATURE mode <img source=\":/icons/editfeature.xpm\"> can you use hot keys to launch ancillary "
+               "programs.</i></b></p>");
+QString editFeatureText = 
+  pfmEdit::tr ("<img source=\":/icons/editfeature.xpm\"> Click this button to allow you to edit an existing feature.  "
+               "Note that you may only edit invalid features if you have invalid data viewing "
+               "<img source=\":/icons/displayinvalid.xpm\"> toggled on.  When selected the cursor will become the "
+               "edit feature cursor <img source=\":/icons/edit_feature_cursor.xpm\">.  The box cursor will snap to the "
+               "nearest feature.  "
+               "You may edit that feature by left clicking while the box cursor is attached to the desired feature.  "
+               "When you left click a feature edit dialog will appear for you to modify.  If, at any time during the "
+               "operation, you wish to abort the operation simply click the middle mouse button or right click and "
+               "select one of the menu options.<br><br>"
+               "Hot keys and action keys are available when in this mode.  Please check the <b>Preferences<b> dialog "
+               "<img source=\":/icons/prefs.xpm\">, specifically the <b>Ancillary Programs</b> dialog, to see what action "
+               "keys are available for each ancillary program.  To find out what the keys do in the ancillary program "
+               "you must use the help in the ancillary program.  Note that the 6th option for <b>ChartsPic</b> will "
+               "<b>ONLY</b> work in this mode.  The 6th option is used to get <b>chartsPic</b> to save a downlooking "
+               "image associated with a CHARTS HOF or TOF file.  The 6th option is normally <b><i>t</i></b> but may "
+               "have been changed by the user."
+               "<p><b><i>IMPORTANT NOTE: Only in this mode, DELETE_POINT mode <img source=\":/icons/delete_point.xpm\">, "
+               "or ADD_FEATURE mode <img source=\":/icons/addfeature.xpm\"> can you use hot keys to launch ancillary "
+               "programs.</i></b></p>");
+QString moveFeatureText = 
+  pfmEdit::tr ("<img source=\":/icons/movefeature.xpm\"> Click this button to allow you to move an existing feature to "
+               "another location.  When selected the cursor will become the move feature cursor "
+               "<img source=\":/icons/move_feature_cursor.xpm\">.  The box cursor will snap to the nearest feature.  "
+               "Acquire that feature by left clicking while the box cursor is attached to the desired feature.  After left "
+               "clicking the box cursor will then snap to the nearest point instead of the nearest feature.  To attach the "
+               "feature to that point simply left click again.  If, at any time during the operation, you wish to abort "
+               "the operation simply click the middle mouse button or right clicking and selecting an option from the "
+               "menu.");
+QString deleteFeatureText = 
+  pfmEdit::tr ("<img source=\":/icons/deletefeature.xpm\"> Click this button to allow you to invalidate an existing "
+               "feature.  This function will set the feature confidence value to 0.  When selected the cursor will become "
+               "the delete feature cursor <img source=\":/icons/delete_feature_cursor.xpm\">.  The box cursor will snap to "
+               "the nearest feature.  You may delete that feature by left clicking while the box cursor is attached to the "
+               "desired feature.  If, at any time during the operation, you wish to abort the operation simply click the "
+               "middle mouse button or right clicking and selectin an option from the menu.");
+
+QString shiftLineText = 
+  pfmEdit::tr ("<img source=\":/icons/shift_line.xpm\"> Click this button to select shift line mode.  This will allow you "
+               "to select a point on a line and shift the values in that line, in the Z direction, to a new "
+               "value.  When selected the cursor becomes the SplitVCursor (a split up/down arrow).  The box "
+               "cursor will snap to the nearest point.  Left click on a point in the line that you wish to "
+               "shift, move the cursor to the approximate location that you wish to shift the line to, then "
+               "left click again.  When shifting the line the distance indicator in the status bar will tell "
+               "you how far the current point (the one the box cursor is snapping to) is from the original "
+               "point.  Even though the box cursor is snapping to a point the shift will be based on the "
+               "change in Z of the cursor from the original point not the Z difference between the "
+               "original point and the current (snapped) point.  If, at any time during the operation, you "
+               "wish to abort the operation simply click the middle mouse button or right click and select an option "
+               "from the menu.<p><b><i>IMPORTANT NOTE: "
+               "Line shifts are only temporary.  They do not actually change the values in the PFM structure.  "
+               "The shift values are applied in pfmEdit for visual reference only.  They will be persistent "
+               "across multiple uses of pfmEdit until the Reset Shift button <img source=\":/icons/reset_shift.xpm\"> "
+               "has been pressed or the specific line shift has been reset using the Reset Single Line Shift "
+               "<img source=\":/icons/reset_single.xpm\"> button.  Also, shifts and resets will be saved across "
+               "multiple uses regardless of whether you save your edits or not.</i></b></p>");
+QString resetSingleText = 
+  pfmEdit::tr ("<img source=\":/icons/reset_single.xpm\"> Click this button to select reset single shifted line mode.  "
+               "This will allow you to select a single shifted line and reset it to its original, "
+               "unshifted values.  When selected the cursor will become the ArrowCursor.  The box cursor will "
+               "snap to the nearest point.  If the point is shifted the line name in the status bar will "
+               "have a yellow background.  Clicking on the point will reset that line's shifted values "
+               "back to their original values.  If you wish to reset <b>all</b> shifted lines use the "
+               "Reset Shift button. <img source=\":/icons/reset_shift.xpm\">");
+QString resetShiftText = 
+  pfmEdit::tr ("<img source=\":/icons/reset_shift.xpm\"> Click this button to cancel all line shifts for the current "
+               "PFM structure.");
+
+
+QString mapText = 
+  pfmEdit::tr ("The pfmEdit program is used to display and edit data points that have been stored "
+               "in a PFM structure.  This program is launched from the pfmView program and is "
+               "not run from the command line.  The various editing and viewing options are "
+               "initiated from the tool bar buttons.  Help is available for each button by "
+               "clicking on the What's This button <img source=\":/icons/contextHelp.xpm\"> then clicking "
+               "on the item of interest.<br><br>"
+               "<b>IMPORTANT NOTE: When in DELETE_POINT mode <img source=\":/icons/delete_point.xpm\">, "
+               "ADD_FEATURE mode <img source=\":/icons/addfeature.xpm\">, or EDIT_FEATURE mode "
+               "<img source=\":/icons/editfeature.xpm\"> hot keys and action keys will be active.  Open Preferences "
+               "<img source=\":/icons/prefs.xpm\"> and then Ancillary Programs to see what programs and hot/action keys "
+               "are available.  Note that each ancillary program is usually data type dependent.  For information about "
+               "what each action key does in the ancillary programs you must use help in the ancillary program.");
+
+QString sliceBarText = 
+  pfmEdit::tr ("This scroll bar monitors the slice action as it moves through the data when in views other "
+               "than plan view.  Pressing the up and down arrow keys "
+               "will move the slice through the data.  To understand how slicing works try to visualize the "
+               "surface as it would be in plan view but with the bottom (leading) edge defined by the view "
+               "(either east, south, or any selected view).  The slice will be 1/20th of the displayed data "
+               "at the bottom (leading) edge of the data.  When you press the up arrow the view will move "
+               "into the data one slice.  When displaying a slice any edits will only effect visible data.  "
+               "This is extremely handy in dealing with very bumpy surfaces to allow you do clean up hidden "
+               "flyers.  Pressing the redraw button <img source=\":/icons/redraw.xpm\"> or the left or right "
+               "arrow keys will turn off slice mode and return to the full view from the original viewing "
+               "angle.  The amount of the data viewed in any one slice can be changed in the <b>Preferences</b> "
+               "<img source=\":/icons/prefs.xpm\"> dialog.");
+
+QString sizeText = 
+  pfmEdit::tr ("Set the slice size using this scroll bar.  To understand how slicing works try "
+               "to visualize the surface as it would be in plan view but with the bottom (leading) edge defined "
+               "by the angle of view.  The slice size will be this percentage (default is 5 percent or 1/20th) of "
+               "the displayed data.  When you press one of the up or down arrow keys or click one of the slice bar "
+               "arrow buttons the slice will move by this amount.  The range for this scroll bar is 1 to 50.");
+
+
+QString colorScaleBoxText = 
+  pfmEdit::tr ("The color scale is an index for the color ranges.  The scale can be turned off in the preferences dialog.<br><br>"
+               "<b>IMPORTANT NOTE: When the color scheme is color by line the color scale is not applicable and will be set to "
+               "all white with no values.</b>");
+
+
+QString transText = 
+  pfmEdit::tr ("Set the transparency value to be used for data that is not in the current slice.  If "
+               "the slider is moved to the bottom, data outside the slice will be invisible.  If it is moved to the top "
+               "the data will be almost completely opaque.  The range for this scroll bar is 0 (transparent) to 128 "
+               "(semi-transparent).");
+
+QString pfmEditAboutText = 
+  pfmEdit::tr ("<center>pfmEdit<br><br>"
+               "Author : Jan C. Depner (jan.depner@navy.mil)<br>"
+               "Date : 31 January 2005<br><br>"
+               "The History Of PFM<br><br></center>"
+               "PFM, or Pure File Magic, was conceived on a recording trip to Nashville in early 1996.  "
+               "The design was refined over the next year or so by the usual band of suspects.  The "
+               "purpose of this little piece of work was to allow hydrographers to geographically view "
+               "minimum, maximum, and average binned surfaces, of whatever bin size they chose, and "
+               "then allow them to edit the original depth data.  After editing the depth data, the "
+               "bins would be recomputed and the binned surface redisplayed.  The idea being that the "
+               "hydrographer could view the min or max binned surface to find flyers and then just "
+               "edit those areas that required it.  In addition to the manual viewing and hand editing, "
+               "the PFM format is helpful for automatic filtering in places where data from different "
+               "files overlaps.  Also, there is a hook to a mosaic imagery file that can contain "
+               "sidescan mosaic data.  pfmEdit is a very simple Qt binned surface viewer.  After "
+               "all of the editing is finished, the status information can be loaded back into the "
+               "original raw input data files.<br><br>"
+               "The author (Evil Twin) would like to acknowledge the contributions to the PFM design "
+               "of the usual band of suspects:"
+               "<ul>"
+               "<li>Commissioner Gordon - Jim Hammack, NAVO</li>"
+               "<li>Fabio               - Dave Fabre, Neptune Sciences, Inc.</li>"
+               "<li>Oh Yes              - Becky Martinolich, NAVO</li>"
+               "</ul><br><br><br>"
+               "<center>Jan '<i>Evil Twin</i>' Depner<br>"
+               "<a href=\"http://en.wikipedia.org/wiki/Naval_Oceanographic_Office\">Naval Oceanographic Office</a><br>"
+               "jan.depner@navy.mil<br></center>");
+
+QString acknowledgementsText = 
+  pfmEdit::tr ("<center><br>pfmEdit was built using some, if not all, of the following Open Source libraries:"
+               "<br><br></center>"
+               "<ul>"
+               "<li><a href=\"http://www.qtsoftware.com/qt\">Qt</a> - A cross-platform application and UI framework</li>"
+               "<li><a href=\"http://www.gdal.org\">GDAL</a> - Geospatial Data Abstraction Library</li>"
+               "<li><a href=\"http://trac.osgeo.org/proj\">PROJ.4</a> - Cartographic Projections Library</li>"
+               "<li><a href=\"http://xerces.apache.org/xerces-c\">XERCES</a> - Validating XML parser libary</li>"
+               "<li><a href=\"http://shapelib.maptools.org\">SHAPELIB</a> - Shapefile C Library</li>"
+               "<li><a href=\"http://www.zlib.net\">ZLIB</a> - Compression Library</li>"
+               "<li><a href=\"http://www.alglib.net\">LEASTSQUARES</a> - Least squares math library</li>"
+               "<li><a href=\"http://liblas.org\">LIBLAS</a> - LAS I/O library</li>"
+               "<li><a href=\"http://www.hdfgroup.org/HDF5\">HDF5</a> - Heirarchical Data Format library</li>"
+               "</ul><br>"
+               "<ul>"
+               "<li>Qt and SHAPELIB are licensed under the <a href=\"http://www.gnu.org/copyleft/lesser.html\">GNU LGPL</a></li>"
+               "<li>GDAL is licensed under an X/MIT style open source license</li>"
+               "<li>PROJ.4 is licensed under an MIT open source license</li>"
+               "<li>XERCES is licensed under the Apache Software License</li>"
+               "<li>ZLIB, LEASTSQUARES, LIBLAS, and HDF5 are licensed under their own open source license</li>"
+               "</ul><br><br>"
+               "Many thanks to the authors of these and all of their supporting libraries.  For more information on "
+               "each library please visit their websites using the links above.<br>"
+               "<center>Jan C. Depner<br><br></center>");
+
+
+QString miscLabelText = 
+  pfmEdit::tr ("This area displays the currently active mode or information about the operation in progress.");
+
+QString statusBarText = 
+  pfmEdit::tr ("The status bar is used to display the progress of the current operation.");
+
+QString progStatusText = 
+  pfmEdit::tr ("The status bar is used to display the progress of the current operation.");
+
+QString attrText = 
+  pfmEdit::tr ("Click this button access a pulldown menu allowing you to color the displayed data by the value of the "
+	       "associated attribute.  This button will either display the normal icon <img source=\":/icons/data_icon.xpm\"> "
+	       "when not coloring by attribute or one of the numbered icons (for example <img source=\":/icons/attr04.xpm\">) "
+	       "when coloring by attribute.");
+
+QString flagText = 
+  pfmEdit::tr ("Click this button to access a pulldown menu allowing you to select data flagging options.  The "
+               "flagging options are:<br><br>"
+               "<ul>"
+               "<li><img source=\":/icons/suspect.xpm\"> - mark suspect data</li>"
+               "<li><img source=\":/icons/selected.xpm\"> - mark selected soundings</li>"
+               "<li><img source=\":/icons/feature.xpm\"> - mark selected feature soundings</li>"
+               "<li><img source=\":/icons/designated.xpm\"> - mark hydrographer designated soundings</li>"
+               "<li><img source=\":/icons/user_flag01.xpm\"> - mark PFM_USER_01 flagged data</li>"
+               "<li><img source=\":/icons/user_flag02.xpm\"> - mark PFM_USER_02 flagged data</li>"
+               "<li><img source=\":/icons/user_flag03.xpm\"> - mark PFM_USER_03 flagged data</li>"
+               "<li><img source=\":/icons/user_flag04.xpm\"> - mark PFM_USER_04 flagged data</li>"
+               "<li><img source=\":/icons/user_flag05.xpm\"> - mark PFM_USER_05 flagged data</li>"
+               "</ul><br><br>"
+               "The PFM_USER_NN flags may be disabled if the PFM file being viewed does not have valid "
+               "user flags.");
+
+QString hideText = 
+  pfmEdit::tr ("Click this button to access a pulldown menu allowing you to select flagged data to be hidden.  "
+               "There are five options available.  These are:<br><br>"
+               "<ul>"
+               "<li>hide PFM_USER_01 flagged data</li>"
+               "<li>hide PFM_USER_02 flagged data</li>"
+               "<li>hide PFM_USER_03 flagged data</li>"
+               "<li>hide PFM_USER_04 flagged data</li>"
+               "<li>hide PFM_USER_05 flagged data</li>"
+               "</ul><br><br>"
+               "The PFM_USER_NN flags may be disabled if the PFM file being viewed does not have valid "
+               "user flags.  More than one data type may be selected to be hidden.<br><br>"
+               "<b>IMPORTANT NOTE: Selecting any of these options <i>DOES NOT</i> cause data that doesn't "
+               "contain matching PFM_USER flags to be unmasked (i.e. shown).  If a point is already masked "
+               "it will remain masked.  Also, once you hide something you can't get it back until you reset "
+               "or click a show button.  This is so you can combine data type/flag hiding with masking.</b>");
+
+
+QString showText = 
+  pfmEdit::tr ("Click this button to access a pulldown menu allowing you to select flagged data to be shown.  "
+               "There are five options available.  These are:<br><br>"
+               "<ul>"
+               "<li>show PFM_USER_01 flagged data</li>"
+               "<li>show PFM_USER_02 flagged data</li>"
+               "<li>show PFM_USER_03 flagged data</li>"
+               "<li>show PFM_USER_04 flagged data</li>"
+               "<li>show PFM_USER_05 flagged data</li>"
+               "</ul><br><br>"
+               "The PFM_USER_NN flags may be disabled if the PFM file being viewed does not have valid "
+               "user flags.  More than one data type may be selected to be hidden.<br><br>"
+               "<b>IMPORTANT NOTE: Selecting any of these options will hide any data that does not "
+               "match the PFM_USER flag.  Think of this as a <i>'show only these types'</i> option.</b>");
+
+QString attributeViewerText = 
+  pfmEdit::tr ("<img source=\":/icons/attributeviewer.png\"> Click this button to run (or kill) the LIDAR Attribute Viewer program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString distanceThreshText = 
+  pfmEdit::tr ("<img source=\":/icons/distance_threshold.xpm\"> Click this button to access the Attribute Viewer's Distance Threshold tool.  "
+               "This tool will allow the user to draw a line within the 3D environment and filter all of the shots within a distance radius.  "
+               "Only two dimensions (lat, lon) are used for this calculation<br>"
+               "<b>IMPORTANT NOTE: There is not hotkey for this button as it is not an external process. </b>");
+
+QString lidarMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/lidar_monitor.png\"> Click this button to run (or kill) the lidarMonitor program.  The "
+               "lidarMonitor program will display HOF, TOF, WLF, CZMIL, or HAWKEYE record data for the current point nearest the "
+               "cursor in a text format.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString rmsMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/rms_monitor.png\"> Click this button to run (or kill) the rmsMonitor program.  The "
+               "rmsMonitor program will display navigation RMS data in a text format for the current HOF of TOF point nearest the "
+               "cursor.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString chartsPicText = 
+  pfmEdit::tr ("<img source=\":/icons/charts_pic.png\"> Click this button to run (or kill) the LIDAR chartsPic program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString waveformMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/waveform_monitor.xpm\"> Click this button to run (or kill) the LIDAR waveformMonitor program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString CZMILwaveMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/wave_monitor.xpm\"> Click this button to run (or kill) the LIDAR CZMILwaveMonitor program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString waveWaterfallAPDText = 
+  pfmEdit::tr ("<img source=\":/icons/wave_waterfall_apd.png\"> Click this button to run (or kill) the LIDAR waveWaterfall program "
+               "in APD mode.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString waveWaterfallPMTText = 
+  pfmEdit::tr ("<img source=\":/icons/wave_waterfall_pmt.png\"> Click this button to run (or kill) the LIDAR waveWaterfall program "
+               "in PMT mode.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString hawkeyeMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/hawkeye_monitor.png\"> Click this button to run (or kill) the LIDAR hawkeyeMonitor program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString gsfMonitorText = 
+  pfmEdit::tr ("<img source=\":/icons/gsf_monitor.png\"> Click this button to run (or kill) the gsfMonitor program.<br><br>"
+               "<b>IMPORTANT NOTE: The hotkey for this button can be changed by changing the associated ancillary program hotkey "
+               "in the Preferences <img source=\":/icons/preferences.xpm\"> dialog.</b>");
+
+QString layerPrefsText = 
+  pfmEdit::tr ("Selecting this menu item will cause the layer preferences dialog to appear.  In this dialog you can "
+	       "turn display of the layers (i.e. PFM files) on or off.");
+
+QString toolbarText = 
+  pfmEdit::tr ("There are eight available tool bars in the pfmEdit program.  They are<br><br>"
+               "<ul>"
+               "<li>View tool bar - contains buttons to change the view</li>"
+               "<li>Feature tool bar - contains buttons to view and modify the features</li>"
+               "<li>Reference tool bar - contains buttons to view and change reference status (also view suspect)</li>"
+               "<li>Selected tool bar - contains buttons to view and change selected soundings</li>"
+               "<li>Utilities tool bar - contains buttons to modify the preferences and get context sensitive help</li>"
+               "<li>Edit tool bar - contains buttons to set editing modes</li>"
+               "<li>Mask tool bar - contains buttons to mask data inside or outside of rectangles or polygons</li>"
+               "<li>LIDAR tool bar - contains buttons that perform actions only for LIDAR data</li>"
+               "</ul>"
+               "The tool bars may be turned on or off and relocated to any location on the screen.  You may click and "
+               "drag the tool bars using the handle to the left of (or above) the tool bar.  Right clicking in the tool "
+               "bar or in the menu bar will pop up a menu allowing you to hide or show the individual tool bars.  The "
+               "location, orientation, and visibility of the tool bars will be saved on exit.");
+
+QString maskInsideRectText = 
+  pfmEdit::tr ("<img source=\":/icons/mask_inside_rect.xpm\"> Click this button to allow you to select a rectangular area "
+               "inside of which you want to hide the data.  When selected the cursor will become the mask cursor "
+               "<img source=\":/icons/mask_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the rectangle anchor point.  Moving the cursor will cause a rectangle to appear.  To finalize the "
+               "rectangle and mask the data, left click again.  If, at any time during the operation, you wish to "
+               "discard the rectangle and abort the operation simply click the middle mouse button or right click and "
+               "select one of the menu options.  To clear all masking press the mask reset button "
+               "<img source=\":/icons/mask_reset.xpm\">");
+QString maskOutsideRectText = 
+  pfmEdit::tr ("<img source=\":/icons/mask_outside_rect.xpm\"> Click this button to allow you to select a rectangular area "
+               "outside of which you want to hide the data.  When selected the cursor will become the mask cursor "
+               "<img source=\":/icons/mask_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the rectangle anchor point.  Moving the cursor will cause a rectangle to appear.  To finalize the "
+               "rectangle and mask the data, left click again.  If, at any time during the operation, you wish to "
+               "discard the rectangle and abort the operation simply click the middle mouse button or right click and "
+               "select one of the menu options.  To clear all masking press the mask reset button "
+               "<img source=\":/icons/mask_reset.xpm\"><br><br>"
+               "<b>IMPORTANT NOTE: This can be used as a zoom in function since no masked data will be used to compute the "
+               "area to be shown.</b>");
+QString maskInsidePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/mask_inside_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "inside of which you want to hide the data.  When selected the cursor will become the mask cursor "
+               "<img source=\":/icons/mask_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "mask the data simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.  To clear all masking press the mask reset button "
+               "<img source=\":/icons/mask_reset.xpm\">");
+QString maskOutsidePolyText = 
+  pfmEdit::tr ("<img source=\":/icons/mask_outside_poly.xpm\"> Click this button to allow you to select a polygonal area "
+               "outside of which you want to hide the data.  When selected the cursor will become the mask cursor "
+               "<img source=\":/icons/mask_cursor.xpm\">.  Left clicking on a location will cause that point to be "
+               "the polygon start point.  Moving the cursor will draw a continuous line.  To close the polygon and "
+               "mask the data simply left click again.  If, at any time during the operation, "
+               "you wish to discard the polygon and abort the operation simply click the middle mouse "
+               "button or right click and select a menu option.  To clear all masking press the mask reset button "
+               "<img source=\":/icons/mask_reset.xpm\"><br><br>"
+               "<b>IMPORTANT NOTE: This can be used as a zoom in function since no masked data will be used to compute the "
+               "area to be shown.</b>");
+QString maskResetText = 
+  pfmEdit::tr ("<img source=\":/icons/mask_reset.xpm\"> Click this button to clear all data masking.");
+QString measureText = 
+  pfmEdit::tr ("<img source=\":/icons/measure.xpm\"> Click this button to measure distances and depth differences.  When this "
+               "is clicked the cursor will become the measure cursor <img source=\":/icons/measure_cursor.xpm\">.  Simply click "
+               "in a location and then move the cursor.  The distance, azimuth, and deltaZ will be displayed in the "
+               "lower right corner status bar.  When you are finished click any mouse button to begin measuring again.");
+
+QString filterText = 
+  pfmEdit::tr ("<img source=\":/icons/filter.xpm\"> Click this button to filter the data points.  The filter parameters can "
+               "be modified in the <b>Preferences</b> dialog <img source=\":/icons/prefs.xpm\"><br><br>"
+               "<b>IMPORTANT NOTE: The filter operation will mark all of the points that are to be filtered and display "
+               "a confirmation dialog prior to actually invalidating the filtered points.<br><br>"
+               "<b><font color=\"#ff0000\">TIP: After running the filter, while the confirmation dialog is visible, you can still mask out any "
+               "points that you don't want to filter and the confirmation dialog will be updated to reflect the change.  You can also adjust the "
+               "filter standard deviation in the confirmation dialog which will re-run the filter.  You can use <i>Shift</i> and the mouse wheel to "
+               "change the value of the standard deviation slider.  In approximately 1 to 1.5 seconds after you quit scrolling the mouse wheel "
+               "or release the <i>Shift</i> key the filter will re-run.  Pressing the <i>Del</i> key (or whatever hot key that has been set for "
+               "<i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog) while the filter confirmation dialog is present will automatically "
+               "<i>Accept</i> the filter operation.  Thanks, and a tip of the hat to <font color=\"#000000\">Micah Tinkler</font> for the filtering "
+               "in the editor idea and especially for the idea of being able to mask <i><font color=\"#000000\">after</font></i> the filter has been "
+               "run.</font></b>");
+
+QString attrFilterText = 
+  pfmEdit::tr ("<img source=\":/icons/attr_filter.xpm\"> Click this button to filter the data points based on a specified attribute value.  "
+               "This is a band pass/fail filter.  That is, points inside/outside of the set range are filtered.<br><br>"
+               "<b>IMPORTANT NOTE: The filter operation will mark all of the points that are to be filtered and display "
+               "a confirmation dialog prior to actually invalidating the filtered points.  Setting the <i>Filter Max</i> slider value less than the "
+               "<i>Filter Min</i> slider value will cause all points <i>inside</i> the range to be marked for invalidation.  Normally, points outside "
+               "the range will be marked for invalidation.<br><br>"
+               "<b><font color=\"#ff0000\">TIP: After running the filter, while the confirmation dialog is visible, you can still mask out any "
+               "points that you don't want to filter and the confirmation dialog will be updated to reflect the change.  You can also adjust the "
+               "filter range values in the confirmation dialog which will re-run the filter.  You can use the sliders in the filter "
+               "confirmation dialog to adjust the min and max range values.  In approximately 1 to 1.5 seconds after you quit adjusting the "
+               "sliders the filter will be re-run.  Pressing the <i>Del</i> key (or whatever hot key that has been set for "
+               "<i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog) while the filter confirmation dialog is present will automatically "
+               "<i>Accept</i> the filter operation.</font></b>");
+
+QString HOFWaveFilterText = 
+  pfmEdit::tr ("<img source=\":/icons/hof_filter.png\"> Click this button to filter CHARTS HOF data points using a proximity based "
+               "waveform filter.  The filter consists of three passes.  The first pass invalidates selected points that have a low fore "
+               "or back slope.  The second pass uses the search radius combined with the horizontal uncertainty and vertical uncertainty "
+               "to eliminate from filtering any valid points that have a valid point from another line within the Hockey Puck of "
+               "Confidence (TM).  The final pass looks for rising waveforms in both PMT and APD (if applicable) in the waveforms of "
+               "valid or invalid adjacent points (within the radius and Z limits).  The search width defines how far before and after "
+               "the selected bin to search for a rise.  The rise threshold defines how many consecutive rise points are considered "
+               "significant.<br><br>"
+               "<b>IMPORTANT NOTE: This button will turn off slicing, un-hide any hidden data, and clear all masks (except filter masks) "
+               "prior to running the filter.</b>");
+
+QString filterRectMaskText = 
+  pfmEdit::tr ("<img source=\":/icons/filter_mask_rect.xpm\"> Click this button to define temporary areas to protect (mask) from "
+               "subsequent (or current) filter operations <img source=\":/icons/filter.xpm\">.<br><br>"
+               "After clicking the button the cursor will change to the rectangle mask cursor "
+               "<img source=\":/icons/filter_mask_rect_cursor.xpm\">.  "
+               "Click the left mouse button to define a starting point for the rectangle.  Moving the mouse will draw a rectangle.  "
+               "Left click to end rectangle definition and mask the area.  To abort the operation click the middle mouse button.<br><br>"
+               "<b>IMPORTANT NOTE: The filter mask areas are only temporary.  If you change the area of the PFM that you "
+               "are viewing these will be discarded.</b>");
+QString filterPolyMaskText = 
+  pfmEdit::tr ("<img source=\":/icons/filter_mask_poly.xpm\"> Click this button to define temporary areas to protect (mask) from "
+               "subsequent (or current) filter operations <img source=\":/icons/filter.xpm\">.<br><br>"
+               "After clicking the button the cursor will change to the polygon mask cursor "
+               "<img source=\":/icons/filter_mask_poly_cursor.xpm\">.  "
+               "Click the left mouse button to define a starting point for a polygon.  Move the mouse to define the polygon to "
+               "be masked.  Left click again to define the last vertex of the polygon.  "
+               "To abort the operation click the middle mouse button.<br><br>"
+               "<b>IMPORTANT NOTE: The filter mask areas are only temporary.  If you change the area of the PFM that you "
+               "are viewing these will be discarded.</b>");
+QString clearMasksText = 
+  pfmEdit::tr ("<img source=\":/icons/clear_filter_masks.xpm\"> Click this button to clear all currently defined filter masks.");
+
+QString undoText = 
+  pfmEdit::tr ("<img source=\":/icons/undo.png\"> Click this button to undo the last edit operation.  When there are no edit "
+               "operations to be undone this button will not be enabled.");
+
+QString filterBoxText = 
+  pfmEdit::tr ("This tab page becomes active after running the filter <img source=\":/icons/filter.xpm\"><br><br>"
+               "When this page is activei you can adjust the results of the filter by moving the standard deviation "
+               "slider up or down.  You may also change the view of the data to get a better perspective on the points "
+               "that have been selected to be invalidated.  If there are areas of the selection that you do not want "
+               "to invalidate you may use the filter mask buttons, <img source=\":/icons/filter_mask_rect.xpm\"> and/or "
+               "<img source=\":/icons/filter_mask_poly.xpm\">, to mask out those areas.  After you are completely satisfied "
+               "with the final results of the filtering operation you may accept the results by pressing the <b>Accept</b> "
+               "button or, more simply, by just pressing the <b>Del</b> key (or whatever hot key that has been set for "
+               "<i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog).<br><br>"
+               "<b>IMPORTANT TIP: Holding down the <b>Shift</b> key and moving the mouse wheel will change the standard "
+               "deviation value.  Approximately 1 to 1.5 seconds after you stop moving the mouse wheel or release the "
+               "<b>Shift</b> key the filter will be re-run and the new filter results will be displayed.</b>");
+
+
+QString attrFilterBoxText = 
+  pfmEdit::tr ("This tab page becomes active after running the attribute filter <img source=\":/icons/attr_filter.xpm\"><br><br>"
+               "When this page is active you can adjust the results of the filter by moving the minimum and maximum range "
+               "sliders up or down.  You may also change the view of the data to get a better perspective on the points "
+               "that have been selected to be invalidated.  If there are areas of the selection that you do not want "
+               "to invalidate you may use the filter mask buttons, <img source=\":/icons/filter_mask_rect.xpm\"> and/or "
+               "<img source=\":/icons/filter_mask_poly.xpm\">, to mask out those areas.  After you are completely satisfied "
+               "with the final results of the filtering operation you may accept the results by pressing the <b>Accept</b> "
+               "button or, more simply, by just pressing the <b>Del</b> key(or whatever hot key that has been set for "
+               "<i>DELETE FILTER HIGHLIGHTED</i> in the Preferences dialog).<br><br>"
+               "<b>IMPORTANT TIP: Setting the minimum slider value to a larger value causes the filter to invalidate points "
+               "<i>inside</i> the range instead of outside the range.</b>");
+
+
+QString stdSliderText = 
+  pfmEdit::tr ("Move this slider up to increase the amount of filtering (i.e. decrease the standard deviation value) or "
+               "move it down to decrease the amount of filtering (i.e. increase the standard deviation value).  When the "
+               "slider is released the filter is re-run on the visible data and the number of points to be rejected is "
+               "modified.<br><br>"
+               "<b>IMPORTANT TIP: Holding down the <b>Shift</b> key and moving the mouse wheel will change the standard "
+               "deviation value.  Approximately 1 to 1.5 seconds after you stop moving the mouse wheel or release the "
+               "<Shift> key the filter will be re-run and the new filter results will be displayed.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.</b>");
+
+QString minSliderText = 
+  pfmEdit::tr ("Move this slider up/down to increase/decrease the minimum value of the range for attribute filtering.  If the value is set to less "
+               "than the maximum slider value, points less than this value will be marked for deletion.  If it is set greater than the "
+               "maximum slider value, points greater than this value but less than the maximum value will be marked for deletion.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+
+QString maxSliderText = 
+  pfmEdit::tr ("Move this slider up/down to increase/decrease the maximum value of the range for attribute filtering.  If the value is set to "
+               "greater than the minimum slider value, points greater than this value will be marked for deletion.  If it is set to less than the "
+               "minimum slider value, points less than this value but greater than the minimum value will be marked for deletion.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+
+QString srSliderText = 
+  pfmEdit::tr ("Move this slider up/down to increase/decrease the search radius used by the hofWaveFilter program when searching for "
+               "nearby points.  Decreasing this value makes the filter more aggressive.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+QString swSliderText = 
+  pfmEdit::tr ("Move this slider up/down to increase/decrease the search width used by the hofWaveFilter program when searching for "
+               "rising values on nearby waveforms.  Decreasing this value makes the filter more aggressive.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+QString rtSliderText = 
+  pfmEdit::tr ("Move this slider up/down to increase/decrease the rise threshold used by the hofWaveFilter program when searching for "
+               "rising values on nearby waveforms.  Increasing this value makes the filter more aggressive.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+QString pmtSliderText = 
+  pfmEdit::tr ("Move this slider left/right to decrease/increase the PMT AC zero offset threshold.  If a point in the HOF waveform "
+               "is not at least this value above the PMT AC zero offset it will be marked as invalid.  Increasing this value makes "
+               "the filter more aggressive.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");
+QString apdSliderText = 
+  pfmEdit::tr ("Move this slider left/right to decrease/increase the APD AC zero offset threshold.  If a point in the HOF waveform "
+               "is not at least this value above the APD AC zero offset it will be marked as invalid.  Increasing this value makes "
+               "the filter more aggressive.<br><br>"
+               "You can also type the value you want into the text box and press <i>Return</i>.");

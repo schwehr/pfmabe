@@ -1,0 +1,8 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/pfmGeotiffWatermark.png</file>
+        <file>icons/data.dat</file>
+ </qresource>
+ </RCC>
+

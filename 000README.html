@@ -1,0 +1,588 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Pure File Magic Area-Based Editor v6.3.1 (Qt-4.7.2)</title>
+    <meta name="GENERATOR" content="OpenOffice.org 3.1 (Linux)">
+    <meta name="CREATED" content="20110111;9113500">
+    <meta name="CHANGED" content="20110111;10172100">
+    <style type="text/css">
+	<!--
+		@page { margin: 0.79in }
+		P { margin-bottom: 0.08in }
+		H2 { margin-bottom: 0.08in }
+		H2.ctl { font-family: "DejaVu LGC Sans" }
+		H1 { margin-bottom: 0.08in }
+		H1.western { font-family: "Arial", sans-serif; font-size: 16pt }
+		H1.cjk { font-family: "DejaVu LGC Sans"; font-size: 16pt }
+		H1.ctl { font-family: "DejaVu LGC Sans"; font-size: 16pt }
+		A:link { so-language: zxx }
+	-->
+	</style>
+  </head>
+  <body dir="LTR" lang="en-US">
+    <h1 class="western" align="CENTER"><br>
+    </h1>
+    <h1 class="western" align="CENTER"><font face="Times New Roman,
+        serif"><font size="6">Pure File Magic Area-Based Editor Software
+          Distribution</font></font></h1>
+    <p align="JUSTIFY"><br>
+      <br>
+    </p>
+    <h2 class="western"><big><font face="Times New Roman, serif"><font
+            size="5"><big>Disclaimer</big></font></font></big></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><br>
+      <font size="3">This is a work of the US Government. In accordance
+        with 17 USC 105, copyright protection is not available for any
+        work of the US Government.</font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">Neither the United States
+        Government nor any employee of the United States Government,
+        makes any warranty, express or implied, without even the implied
+        warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE,
+        or assumes any liability or responsibility for the accuracy,
+        completeness, or usefulness of any information, apparatus,
+        product, or process disclosed, or represents that its use would
+        not infringe privately-owned rights. Reference herein to any
+        specific commercial products, process, or service by trade name,
+        trademark, manufacturer, or otherwise, does not necessarily
+        constitute or imply its endorsement, recommendation, or favoring
+        by the United States Government. The views and opinions of
+        authors expressed herein do not necessarily state or reflect
+        those of the United States Government, and shall not be used for
+        advertising or product endorsement purposes.</font></p>
+    <p style="margin-left: 0.49in;"><br>
+      <br>
+    </p>
+    <h2 class="western"><big><font face="Times New Roman, serif"><font
+            size="5"><big>Background</big></font></font></big></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><br>
+      <font size="3">If you want to understand the Pure File Magic (PFM)
+        data structure and how it came to be you can read the <a
+          href="PFM.html">PFM. html</a> file in this same directory.
+        This document is for programmers or system administrators who
+        want to build, and possibly modify, the Area-Based Editor (ABE)
+        on their own systems.</font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">First, I need to explain to all of
+        the hotshot programmers out there that I am self-taught. I
+        taught myself Fortran IV in 1978 so that I wouldn't have to
+        spend the rest of my life typing navigation fixes onto IBM punch
+        cards (thrill a minute). In 1989 I taught myself C because I
+        liked the idea of memory allocation. I did finally take a course
+        in C so I could figure out why I was doing what I was doing. ABE
+        was originally written in C using Motif graphics. What a
+        nightmare. In 2003, in my copious spare time, I started working
+        on an open source audio mastering program called <a
+          href="http://jamin.sourceforge.net">JAMin</a>. I handled the
+        graphics code. This got me familiar with GTK and GLADE. As
+        primitive as GTK is, I could see that it was a huge leap forward
+        over Motif. I wasn't thrilled with using a GUI builder though so
+        I did a little checking around and discovered Qt. After looking
+        at the documentation, I was sold. There was only one problem.
+        You guessed it, I had to teach myself C++. In early 2005 I
+        ported the original ABE from C/Motif to C++/Qt. As I said
+        before, I don't like GUI builders, so I didn't use QDesigner.
+        Good thing too because the port from Qt3 to Qt4 in 2007 would
+        have killed me. In late 2008&nbsp; I taught myself OpenGL so
+        that I could build the 3D surface viewers and point cloud
+        editors.&nbsp; <br>
+      </font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">What's all this leading to? Well,
+        when you look at my C++ code you'll see that it looks a lot like
+        C. I rarely use <i>new</i>. Instead I use <i>malloc</i>, <i>calloc</i>,
+        and <i>realloc</i>. I know that <i>assert</i> is some kind of
+        error checking thing but I have no idea how it works. I don't
+        use <i>vectors</i> or other C++ constructs. You get the
+        picture? Most of what I know about C++ I got from the Qt example
+        programs (excellent stuff by the way). On the other hand, I have
+        been told that I comment too much (is that an oxymoron?). My IDE
+        of choice is Xemacs. I keep my code as clean and easy to read as
+        possible. Also, because the Naval Oceanographic Office (my
+        employer) handles a huge amount of data my primary objective is
+        speed. Esthetics aren't that important.&nbsp; Most of my library
+        code is pure C.&nbsp; I like to keep APIs low-level.&nbsp;
+        You'll also note that I use <span style="font-style: italic;">-ansi</span>
+        and <span style="font-style: italic;">-Wall</span> on all of my
+        compiles.<br>
+      </font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">In addition to my use of Xemacs and
+        my archaic, C code-like C++, I haven't used the standard&nbsp;<span
+          style="font-style: italic;"></span><span style="font-style:
+          italic;">config</span>, <span style="font-style: italic;">make</span>,
+        <span style="font-style: italic;">make install</span> build
+        technique.&nbsp; I can't help it, I'm lazy (plus I really only
+        have to support two platforms).&nbsp; Instead I've built scripts
+        in the top level directory and each of the program
+        directories.&nbsp; As you'll discover shortly, the scripts are
+        all named <span style="font-style: italic;">mk</span>.&nbsp;
+        For the C++ code they run Qt's <span style="font-style:
+          italic;">qmake</span> utility to build a <span
+          style="font-style: italic;">Makefile.</span>&nbsp;
+        For
+        the
+        standard
+        C
+        programs
+        there
+        is
+        a
+        pre-existing <span style="font-style: italic;">Makefile</span>.</font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"> This code has only been built and
+        tested on 32 and 64 bit Linux, 32 and 64 bit Windows XP using
+        MinGW (32 or 64), and 64 bit Windows 7 using MinGW64. &nbsp;
+        Just about any Linux distribution should work although it has
+        been built and tested on Fedora 14, Centos 4 and 5, and Ubuntu
+        10.10.</font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">Since this is public domain
+        software (with the exception of all of the open source libraries
+        that it's built on) I can't&nbsp; beat you over the head with
+        the GPL or some other license to get you to send your bug fixes
+        and improvements back to me but it would be kind of nice if you
+        did (<a href="mailto:jan.depner@navy.mil">jan.depner@navy.mil</a>).</font></p>
+    <p><br>
+    </p>
+    <h2 class="western"><big><font face="Times New Roman, serif"><font
+            size="5"><big>Getting and unpacking the code</big></font></font></big></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        First things first - if you're going to build on Windows you
+        MUST install MinGW.&nbsp; If you want to build on 64 bit Windows
+        you also need MinGW64.&nbsp; There are two MinGW installers
+        included with PFM_ABE.&nbsp; They are MinGW-20100831-Setup.exe
+        and MinGW64-20100831-Setup.exe for 32 bit and 64 bit
+        respectively.&nbsp; These two installers were built from a
+        system built with the MinGW installer of 20100831 and, in the
+        case of the 64 bit version, the sezero MinGW64 personal build of
+        20101003.&nbsp; These packages are licensed under the GNU
+        General Public License v3 and you must accept that license when
+        installing.&nbsp; For more information on MinGW visit</font><font
+        size="3"><font color="#000000"> <a href="http://www.mingw.org/">http://www.mingw.org/</a>.<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font color="#000000"><span
+            style="color: rgb(255, 0, 0);"><span style="font-weight:
+              bold;">IMPORTANT NOTE</span>: If you have Cygwin installed
+            on your Windows system and you want to build ABE you <span
+              style="font-weight: bold;">MUST</span> make sure that the
+            MinGW binaries and libraries are prior to any Cygwin
+            binaries and libraries in your PATH.&nbsp; If you don't do
+            this the build will fail.</span><br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font color="#000000">When you
+          install either of the above MinGW packages you will be
+          required to select an install destination.&nbsp; Always place
+          the package in the root filesystem.&nbsp; In most cases this
+          is C:. <br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">On Linux all you need is gcc and
+        g++.&nbsp; All of the other libraries that you need will be
+        included in the FOSS_libraries._MMDDYY.tgz file and will be
+        built from scratch (the first time you build).&nbsp;&nbsp;<font
+          color="#000000"></font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">In order to build the Area-Based
+        Editor you need, at a minimum, the ABE_MMDDYY.tgz file and the
+        FOSS_libraries_MMDDYY.tgz file.&nbsp; You will probably also
+        want the Documentation_MMDDYY.tgz file even though it's not
+        completely up to date.&nbsp; The FOSS_libraries_MMDDYY.tgz file
+        contains 14 Free Open-Source Software packages that we need to
+        have in order build ABE.&nbsp; They are, in alphabetical order:
+        BEECRYPT, GDAL, HDF5, JPEG, LEASTSQUARES, LIBLAS, MESCHACH,
+        OpenNS, PROJ4, QT, SHAPELIB, SQLITE, XERCES-C, and ZLIB.&nbsp;
+        Minor modifications have been made to some of the included
+        packages in order to build those packages under MinGW.&nbsp;
+        Note that the MMDDYY in the tar file names is the month, day,
+        and year of the last update.&nbsp; Since the documentation and
+        the FOSS files are really large (approximately 100MB and 200MB
+        respectively) you probably only want to download new versions if
+        they have changed since the last time you downloaded.&nbsp; The
+        ABE_MMDDYY.tgz file will more than likely change very often
+        since it is in constant development.<br>
+      </font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">Once you have downloaded the files
+        you need to untar them.&nbsp; </font><font size="3">Untarring
+        the files will create a directory called new_edit-6.3.1 that
+        will contain all of the code, documentation, and build scripts.</font><font
+        size="3">&nbsp; On Windows, t</font><font size="3">he
+        new_edit-6.3.1 folder needs to be at the lowest level of your
+        file system that you can get. Preferably C:\. Even if you can't
+        put it in C:\ you must put it in a folder that <font
+          color="#000000">does not have any spaces in the fully
+          qualified file name. For example, the folder
+          C:\fred\ethel\lucy and ricky\ is not acceptable.
+          C:\fred\ethel\lucy_and_ricky\ is.&nbsp; Also, on Windows, u</font></font><font
+        size="3">se the Msys/MinGW shell (not the command prompt shell)
+        to run tar and all other commands.&nbsp; Here are the commands
+        to unpack the source code and documentation:<br>
+      </font></p>
+    <p style="margin-left: 0.9034in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3">tar -xvzf ABE_MMDDYY.tgz<br>
+        tar -xvzf FOSS_libraries_MMDDYY.tgz<br>
+        tar -xvzf Documentation_MMDDYY.tgz<br>
+      </font></p>
+    <br>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">If you want to
+          install XEmacs (a great editor) just run the executable and
+          take the recommended options. If you want it to work nicely
+          from the MinGW shell you'll need to add the executable
+          directory to the PATH environment variable.&nbsp; Start the
+          Control Panel and navigate to
+          System-&gt;Advanced-&gt;Environment Variables.&nbsp; Modify
+          the PATH to include C:\Program
+          Files\XEmacs\XEmacs-21.4.22\i586-pc-win32.&nbsp; If you are on
+          a 64 bit system it will be Program File (x86).<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        <br>
+      </font></p>
+    <p></p>
+    <h2 class="western"><big><font face="Times New Roman, serif"><font
+            size="5"><big>Building on Linux</big></font></font></big></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        On Linux it's pretty simple. If you have root access just cd to
+        the newly created new_edit-6.3.1 directory and enter the
+        command:<br>
+        <br>
+        <br>
+      </font></p>
+    <p style="margin-left: 0.8334in;"><font size="3">./mk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[add
+the
+-s
+option
+
+        to build static libraries]<br>
+      </font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"><br>
+          This will install the software in /usr/local and all will be
+          right with the world. You can install the software in another
+          location but you'll have to modify your PATH and, if you don't
+          build statically, LD_LIBRARY_PATH environment variables (as
+          described below) to run the software. If you don't have root
+          access you can do the following:<br>
+          <br>
+          <br>
+        </font></font></p>
+    <p style="margin-left: 0.8334in;"><font size="3">./mk [-s]
+        /SOMEWHERE/PFM_ABEv6.3.1</font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        This will build the software in /SOMEWHERE/PFM_ABEv6.3.1. Of
+        course then you'll have to add /SOMEWHERE/PFM_ABEv6.3.1/bin to
+        your PATH environment variable and, if you didn't add the -s
+        option, /SOMEWHERE/PFM_ABEv6.3.1/Trolltech/Qt-4.7.2/lib to your
+        LD_LIBRARY_PATH environment variable. To modify your environment
+        variable you would do something like the following in your
+        .bash_profile or .bashrc file (assuming bash shell):<br>
+        <br>
+        <br>
+      </font></p>
+    <p style="margin-left: 0.8334in;"><font size="3">export
+        PATH=/SOMEWHERE/PFM_ABEv6.3.1/bin:$PATH</font></p>
+    <p style="margin-left: 0.8334in;"><font size="3">export
+LD_LIBRARY_PATH=/SOMEWHERE/PFM_ABEv6.3.1/lib:SOMEWHERE/PFM_ABEv6.3.1/Trolltech/Qt-4.7.2/lib:$LD_LIBRARY_PATH</font></p>
+    <p style="margin-left: 40px;"><font size="3"><br>
+        <span style="color: rgb(255, 0, 0);"><span style="font-weight:
+            bold;">IMPORTANT NOTE:&nbsp;</span> If you have another
+          package installed on your system that uses an older version of
+          Qt (like IVS Fledermaus) you may need to build PFM_ABE
+          statically.&nbsp; This will avoid conflicts with the older
+          shared library.&nbsp; The disadvantage of this is that the
+          executables will be larger and use more memory.&nbsp; The
+          (slight) advantage is that they will run just a tiny bit
+          faster.</span></font><font size="3"><br>
+      </font></p>
+    <p style="margin-left: 40px; color: rgb(255, 0, 0);"><font size="3"><span
+          style="font-weight: bold;">OTHER IMPORTANT NOTE:</span>&nbsp;
+        If you want to edit more than about 280,000 data points at once
+        you will need to increase your system's maximum shared memory
+        limit.&nbsp; This requires root access.&nbsp; To increase the
+        normal shared memory limit from 32MB to 2GB just add the
+        following two lines to the end of /etc/sysctl.conf<br>
+      </font></p>
+    <p style="margin-left: 80px;"><font size="3"><span style="color:
+          rgb(255, 0, 0);">kernel.shmmax = 2147483648</span><br
+          style="color: rgb(255, 0, 0);">
+        <span style="color: rgb(255, 0, 0);"> kernel.shmall = 524288</span><br>
+      </font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        After you have built the software you'll need to load a few
+        files and set a few more environment variables to get the full
+        functionality out of it. See <a href="#Ancillary_Files">ANCILLARY
+
+          FILES</a> below.<br>
+        <br>
+      </font></p>
+    <p><font size="3"><br>
+        <br>
+        <br>
+      </font></p>
+    <h2 class="western"><font size="3"><big><font face="Times New Roman,
+            serif"><font size="5"><big>Building on Windows</big></font></font></big></font></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><br>
+        <font size="3">It's slightly more complicated on Windows.&nbsp;
+          Assuming that you've installed MinGW (since it's required),
+          open a MinGW/MSYS window and cd to /c/new_edit-6.3.1 (assuming
+          that's where you put it) and issue the following command:<br>
+          <br>
+        </font></font></p>
+    <div style="margin-left: 80px;"><font size="3"><font size="3"> ./mk
+          -s /c/Program\ Files/PFM_ABEv6.3.1<br>
+        </font></font></div>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"><br>
+          Note that you can place the executables and libraries in a
+          folder that has spaces in the name. Having spaces in the name
+          is only a problem when you build the software, not when you
+          run it (but don't forget to "escape" the space by preceding it
+          with a backslash (\) as shown above). When it gets done
+          building (go to a movie, take a vacation, it takes a
+          ridiculous amount of time to build on Windows - on Linux it's
+          pretty quick) you have to set your PATH environment variable
+          to get it to run. To do this use the same procedure described
+          above for adding XEmacs to your path but add the following
+          folder instead:<br>
+          <br>
+          <br>
+        </font></font></p>
+    <p style="margin-left: 0.8334in;"><font size="3"><font size="3">c:\Program
+
+          Files\PFM_ABEv6.3.1\bin\</font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"><br>
+          <br>
+        </font></font><font style="color: rgb(255, 0, 0);" size="3"><span
+          style="font-weight: bold;">IMPORTANT NOTE:</span> Because of
+        possible conflicts between packages using older versions of
+        dynamically linked libraries (like IVS Fledermaus) it is
+        recommended that you build ABE statically.&nbsp; That is the
+        reason for the -s option on the ./mk command line.&nbsp; This
+        will avoid conflicts with older shared libraries.&nbsp; The
+        disadvantage of this is that the executables will be larger and
+        use more memory.&nbsp; The (slight) advantage is that they will
+        run just a tiny bit faster.</font><font style="color: rgb(255,
+        0, 0);" size="3">&nbsp; If you don't build statically you'll
+        need to add </font><font style="color: rgb(255, 0, 0);"
+        size="3"><font size="3">c:\Program
+          Files\PFM_ABEv6.3.1\lib\ to your PATH environment variable.</font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><br>
+      <span style="color: rgb(255, 0, 0);"><span style="font-weight:
+          bold;">OTHER IMPORTANT NOTE:</span> Due to some problems with
+        MinGW, 64 bit ABE will not build on Windows XP 64.&nbsp; There
+        are two work-arounds for this.&nbsp; First, you can install
+        MinGW32 instead of MinGW64 and build 32 bit programs.&nbsp; The
+        second option is to build ABE on 64 bit Windows 7 under MinGW64
+        and then move the binaries and libraries to the Windows XP 64
+        system(s).</span></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"> <br>
+        After you have built the software you'll need to load a few
+        files and set a few more environment variables to get the full
+        functionality out of it. See <a href="#Ancillary_Files">ANCILLARY
+
+          FILES</a> below.<br>
+        <br>
+      </font></p>
+    <br>
+    <br>
+    <h2 class="western"><font size="3"><font size="3"><big><font
+              face="Times New Roman, serif"><font size="5"><big><a
+                    name="Ancillary_Files"></a>Ancillary Files</big></font></font></big></font></font></h2>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"> There are a few
+          extra files that you will probably want in order to get the
+          most out of some of the programs that you have just built.
+          It's nice to have coastlines when you're looking at a map ;-)<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">On Linux, unpack the
+          PFM_ABE_Ancillary_Data_Files.tgz file somewhere convenient and
+          then set a few environment variables to point to them. WVS_DIR
+          must point to the wvswdb directory. SRTM_DATA must point to
+          the srtm_data directory. You will also need to set&nbsp;
+          GDAL_DATA to point to the share/gdal directory and BAG_HOME to
+          point to the share/configdata directory in the directory where
+          you installed the software. That is, on Linux:<br>
+          <br>
+          <br>
+        </font></font></p>
+    <p style="margin-left: 0.8334in;"><font size="3"><font size="3">export
+
+          GDAL_DATA=/usr/local/share/gdal<br>
+          export BAG_HOME=/usr/local/share/configdata<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"><br>
+          This can be added to your .bash_profile or to your default
+          system profile in /etc/profile or one of the files in
+          /etc/profile.d depending on the Linux distribution you are
+          using.<br>
+          <br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">On Windows you can
+          simply run PFM_ABE_Ancillary_Data-1.0-Setup.exe and it will
+          install the files and set the environment variables for you.<br>
+          <br>
+          <br>
+        </font></font></p>
+    <p><font size="3"><font size="3"></font></font><font
+        style="font-weight: bold;" size="3"><font size="3"><big><font
+              face="Times New Roman, serif"><font size="5"><big>Programming
+
+                  Notes</big></font></font></big></font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"> OK, so now you have
+          a bunch of software built and you have no idea how to get your
+          data into the programs. If you happen to use Generic Sensor
+          Format (GSF), Optech's Hydrographic Output Format (HOF) or
+          Topographic Output Format (TOF), or AHAB's Generic Binary
+          Format (BIN) you're in good shape. If you have something else
+          you've got a little bit of work ahead of you.<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">Since most of the
+          software included in PFM_ABE is based on the Pure File Magic
+          (PFM) data structure you're going to have to get your data
+          into that form. PFM was designed to allow you to read your
+          data into a PFM structure, edit the data in the structure, and
+          then save those changes back to your original input file. In
+          order to do this there are some requirements for your data
+          format. First, the data must be addressable by record and,
+          optionally, sub-record (you can think of this as ping and beam
+          for multibeam systems or shot and return for lidar systems).
+          For GSF, because it uses variable record lengths, we had to
+          index the data files. This is handled transparently by the GSF
+          library. For HOF, TOF, and BIN it was much simpler because the
+          records are fixed length. The second requirement is that you
+          have to be able to store and retrieve validity information for
+          each record/sub-record. This can be as simple as having a
+          single bit or character that indicates that a
+          record/sub-record is valid or invalid or it can be more
+          complex (like beam status in GSF). There are, at present, 18
+          validity bits in use in PFM (five are user defined). The third
+          requirement is very important - you have to have position
+          information. For PFM_ABE the positions are geographic. While
+          PFM will support projected data, PFM_ABE does not (UTM is for
+          people who need to draw lines on paper ;-)&nbsp; If you have
+          no need to save your edits back to your input files the
+          requirements get a bit simpler in that you do not have to have
+          an ability to store validity.<br>
+          <br>
+          In order to get your data into PFM you will need to modify a
+          few files in the pfmLoad program (and pfmLoader if you want to
+          run from the command line) and also a couple of files in the
+          PFM library. In pfmLoad the first file to be modified is
+          load_file.cpp. You should be able to cut and paste one of the
+          check_XXX_file and load_XXX_file sections and just replace XXX
+          with your data type. An example of a very simple data type is
+          HOF so take a look at check_hof_file and load_hof_file. GSF is
+          quite a bit more complicated and uses yet another function to
+          break out separate beams from each ping. In either case it's
+          not rocket science. After making your check/load functions you
+          need to add them to pfmLoad.cpp. It's very easy to find where
+          they go in the code. Just cut and paste another few lines in
+          each section. The last file you need to change in pfmLoad is
+          get_file_type.cpp. This function determines file type based on
+          file extension or file header. This leads us to yet another
+          problem - if you are defining a new data type you need to make
+          sure that PFM understands what it is. To do this you will need
+          to modify pfm.h and pfm_io.c in the pfm_lib_5 directory (you
+          should probably make the same changes in pfm_lib_6 just in
+          case we ever get our act together and move forward). You will
+          need to add a data type in the <b>Data types</b> section of
+          pfm.h. Please try to define in the comments how you are
+          loading the data for the data type. Take a look at
+          PFM_SHOALS_TOF_DATA for an example. Data type numbers should
+          be coordinated with me since we don't want collisions (email <a
+            href="mailto:jan.depner@navy.mil">jan.depner@navy.mil</a> or
+        </font></font><font size="3"><font size="3"><a
+            href="mailto:eviltwin69@cableone.net">eviltwin69@cableone.net</a></font></font><font
+        size="3"><font size="3">) . After adding the data type you need
+          to modify pfm_io.c to recognize that data type. There is only
+          one place that it needs to be set and that is in the
+          open_pfm_file function. It should be intuitively obvious to
+          the most casual observer ;-)<br>
+          <br>
+          After making your changes to pfmLoad and pfm_lib_5 just cd to
+          the new_edit-6.3.1 directory and issue the same ./mk command
+          that you used to build it the first time. If we hadn't changed
+          the library you could have issued the same ./mk command in the
+          pfmLoad directory and it would have built just that program.<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">If you make changes
+          and you want to send them back to me to be incorporated into
+          the base package please modify the version.hpp or&nbsp;
+          version.h file for the program.&nbsp; In the libraries there
+          is a LIBRARY_version.h or LIBRARY_version.hpp file.&nbsp; Just
+          change the version number (for minor changes use hundredths,
+          for not so minor use tenths, and for major changes use units)
+          and then add a little explanation at the end of the comment
+          section.<br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3">Many of the library
+          Application Programming Interfaces (APIs) and some of the GUI
+          programs are documented using Doxygen.&nbsp; You can find this
+          documentation in the Documentation/APIs_and_Programs directory
+          of the new_edit-6.3.1</font></font><font size="3">
+        directory.&nbsp; This documentation is only created if you have
+        the doxygen package installed.&nbsp; You will also need the
+        graphviz and graphviz-gd packages to get the graphics portion of
+        the documentation for the documented C++ classes.&nbsp; Please
+        note that comments in .c, .h, .cpp, and .hpp files that start
+        with /*! or //! are being used by Doxygen to document the
+        software.&nbsp; Dashes in these comment blocks are used to
+        create bullet lists.&nbsp; The lack of blank lines after a block
+        of dash preceeded comments means that the next block of dash
+        preceeded comments is a new, indented bullet list.&nbsp; I've
+        tried to keep the Doxygen formatting to a minimum but there are
+        some other items (like &lt;br&gt; and &lt;pre&gt;) that need to
+        be left alone.&nbsp; If you see a comment that starts with /*!
+        or //! and there is something that looks a bit weird it is
+        probably due to some arcane Doxygen syntax.&nbsp; Be very
+        careful modifying blocks of Doxygen comments.<br>
+      </font></p>
+    <p><font size="3"><font size="3"><b><br>
+          </b><br>
+          <br>
+        </font></font></p>
+    <h2 class="western"><font size="3"><font size="3"><big><font
+              face="Times New Roman, serif"><font size="5"><big>Use
+                  Notes</big></font></font></big></font></font></h2>
+    <p align="LEFT"><font size="3"><font size="3"><br>
+        </font></font></p>
+    <p style="margin-left: 0.49in; margin-right: 0.49in;"
+      align="JUSTIFY"><font size="3"><font size="3"> In the directory
+          where you stored the programs (/c/Program\ Files/PFM_ABEv6.3.1
+          in the Windows example above) there is a doc directory. In
+          that directory you will find the PFM directory. In that
+          directory is a file called Area_Based_Editor.html. Open that
+          with your favorite browser to read the user guide. It's a bit
+          scattered and usually not quite up to date but it should
+          answer most of your user questions. This is also accessible
+          from the Help menu in pfmView and pfmEdit(3D).<br>
+        </font></font></p>
+    <p><font size="3"><font size="3"><br>
+          <br>
+        </font></font></p>
+  </body>
+</html>

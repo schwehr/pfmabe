@@ -1,0 +1,71 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+    LIBRARIES="-L $PFM_LIB -lCHARTS -lnvutility -lpfm -lCZMIL"
+else
+    DEFS="WIN32 NVWIN3X CZMIL_STATIC"
+    LIBRARIES="-L $PFM_LIB -lCHARTS -lnvutility -lpfm -lCZMIL"
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f attributeViewer.pro Makefile
+
+$QTDIR/bin/qmake -project -o attributeViewer.tmp
+cat >attributeViewer.pro <<EOF
+RESOURCES = icons.qrc
+INCLUDEPATH += $PFM_INCLUDE
+LIBS += $LIBRARIES
+DEFINES += $DEFS
+EOF
+
+cat attributeViewer.tmp >>attributeViewer.pro
+rm attributeViewer.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 attributeViewer
+    mv attributeViewer $PFM_BIN
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 $WINMAKE/attributeViewer.exe
+    cp $WINMAKE/attributeViewer.exe $PFM_BIN
+    rm $WINMAKE/attributeViewer.exe
+fi

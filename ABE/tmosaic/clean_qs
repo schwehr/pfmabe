@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for qid in $(ipcs -q | awk '$2+0 > 0 { print $2 }')
+do
+    echo Removing queue $qid
+    ipcrm -q $qid
+done
+
+for sid in $(ipcs -s | awk '$2+0 > 0 { print $2 }')
+do
+    echo Removing semaphore $sid
+    ipcrm -s $sid
+done

@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h> 
+#include <math.h>               
+
+#define         NV_A0           6378137.0L
+#define         NV_B0           6356752.314245L
+
+#define         NV_RF           298.257223563L
+
+#define         LOG2            0.3010299956639812L
+
+#define         NV_DEG_TO_RAD   0.017453293L
+#define         NV_RAD_TO_DEG   57.2957795147195L
+
+
+int main (int argc, char *argv[])
+{
+  double f0, af0, bf0, e2, xiii, xiii2, xiii3, nu, rho, eta2, p, xiv, xv, lat_long_to_c_rad, lat, lon;
+  int zone = 54;
+
+
+  lat = -37.65282113889 * NV_DEG_TO_RAD;
+  lon = 143.92649552778 * NV_DEG_TO_RAD;
+
+  f0  = 0.9996L;
+  fprintf (stderr, "f0 %.12lf\n", f0);
+  af0 = NV_A0 * f0;
+  fprintf (stderr, "af0 %.12lf\n", af0);
+  bf0 = NV_B0 * f0;
+  fprintf (stderr, "bf0 %.12lf\n", bf0);
+  e2  = ((af0 * af0) - (bf0 * bf0)) / (af0 * af0);
+  fprintf (stderr, "e2 %.12lf\n", e2);
+
+  xiii = sin (lat);
+  fprintf (stderr, "xiii %.12lf\n", xiii);
+  xiii2 = cos (lat);
+  fprintf (stderr, "xiii2 %.12lf\n", xiii2);
+  xiii3 = tan (lat);
+  fprintf (stderr, "xiii3 %.12lf\n", xiii3);
+
+  nu = NV_A0 / sqrt (1.0L - (e2 * xiii * xiii));
+  fprintf (stderr, "nu %.12lf\n", nu);
+  /*rho = (nu * (1.0L - e2)) / (1.0L - pow (e2 * xiii, 2.0L));*/
+  rho = NV_A0 * (1.0 - e2) / pow (1.0 - (e2 * xiii * xiii), 1.5);
+  fprintf (stderr, "rho %.12lf\n", rho);
+  eta2 = (nu / rho) - 1.0L;
+  fprintf (stderr, "eta2 %.12lf\n", eta2);
+  p = lon - (((double) (zone - 31) * 6.0L + 3.0L) * NV_DEG_TO_RAD);
+  fprintf (stderr, "p %.12lf\n", p);
+
+
+  xiv = ((-xiii * xiii2 * xiii2) / 3.0L) * (1.0L + (3.0L * eta2) + (2.0L * eta2 * eta2));
+  fprintf (stderr, "xiv %.12lf\n", xiv);
+  xv = ((-xiii * pow (xiii2, 4.0L)) / 15.0L) * (2.0L - (xiii3 * xiii3));
+  fprintf (stderr, "xv %.12lf\n", xv);
+
+
+  lat_long_to_c_rad = (p * -xiii) + (pow (p, 3.0L) * xiv) + (pow (p, 5.0L) * xv);
+
+
+  fprintf (stderr, "%.12lf\n", lat_long_to_c_rad);
+
+
+  return (0);
+}

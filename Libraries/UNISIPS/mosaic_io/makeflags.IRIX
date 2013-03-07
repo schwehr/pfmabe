@@ -1,0 +1,10 @@
+#
+# mosaic_io library makefile
+#
+# SGI make flags
+#
+
+CC = cc
+CFLAGS = -O -ansi -o32 -I$(MOSAIC_INCLUDE) -I$(BYTE_SWAP_INCLUDE)
+ARFLAGS=-r
+

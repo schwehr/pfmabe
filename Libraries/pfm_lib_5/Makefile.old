@@ -1,0 +1,67 @@
+OS := $(shell uname)
+
+CC = gcc
+
+LINKER = gcc
+
+OBJS = pfm_io.o bit_pack.o huge_io.o gp.o pfm_extras.o hyp.o
+
+.c.o:
+	$(CC) $(CFLAGS) $*.c
+
+
+ifeq ($(OS),Linux)
+
+    TGT = libpfm.so
+
+    MAKEFILE = Makefile
+
+    CFLAGS = -fPIC -O -ansi -Wall -c -DNVLinux -DUNIX -DLINUX
+
+    LINK_FLAGS = -shared -fPIC -Wl,-soname,$(TGT) -o $(TGT)
+
+all: $(TGT)
+{-c $(CC) $(CFLAGS) $(LINKER) $(LINK_FLAGS)} $(TGT) : $(OBJS) $(MAKEFILE)
+	$(LINKER) $(LINK_FLAGS) $(OBJS)
+	rm -f *~ *.o
+	mv libpfm.so $(PFM_LIB)
+	cp pfm.h $(PFM_INCLUDE)
+	cp huge_io.h $(PFM_INCLUDE)
+	cp pfm_nvtypes.h $(PFM_INCLUDE)
+	cp pfm_extras.h $(PFM_INCLUDE)
+	cp hyp.h $(PFM_INCLUDE)
+
+endif
+
+
+ifeq ($(OS),MINGW32_NT-5.1)
+
+    TGT = libpfm.dll
+
+    TGTa = libpfm.a
+
+    CFLAGS = -O -ansi -Wall -c -DNVWIN3X
+
+    LINK_FLAGS = -shared -o $(TGT) -Wl,--out-implib,$(TGTa)
+
+all: $(TGT)
+{-c $(CC) $(CFLAGS) $(LINKER) $(LINK_FLAGS)} $(TGT) : $(OBJS) $(MAKEFILE)
+	$(LINKER) $(LINK_FLAGS) $(OBJS)
+	rm -f *~ *.o
+	cp libpfm.dll $(PFM_LIB)
+	rm libpfm.dll
+	cp libpfm.a $(PFM_LIB)
+	rm libpfm.a
+	cp pfm.h $(PFM_INCLUDE)
+	cp huge_io.h $(PFM_INCLUDE)
+	cp pfm_nvtypes.h $(PFM_INCLUDE)
+	cp pfm_extras.h $(PFM_INCLUDE)
+	cp hyp.h $(PFM_INCLUDE)
+
+endif
+
+
+pfm_io.o:     pfm.h pfm_header.h pfm_version.h huge_io.h pfm_nvtypes.h pfm_extras.h
+bit_pack.o:   pfm_nvtypes.h
+huge_io.o:    huge_io.h pfm_nvtypes.h
+hyp.o:        hyp.h

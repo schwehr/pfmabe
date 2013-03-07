@@ -1,0 +1,10 @@
+#
+# Linux make flags
+#
+
+CC = gcc
+CFLAGS = -O -ansi -I$(MOSAIC_INCLUDE) -I$(BYTE_SWAP_INCLUDE)
+ARFLAGS=-r
+RANLIB =ranlib
+
+

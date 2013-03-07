@@ -1,0 +1,5 @@
+#
+#  bytes swapping function make flags for IRIX
+#
+CC      = cc
+CFLAGS  = -o32

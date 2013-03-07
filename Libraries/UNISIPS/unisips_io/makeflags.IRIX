@@ -1,0 +1,7 @@
+#
+# SGI make flags
+#
+CC = cc
+CFLAGS = -O -ansi -o32 -I$(UNISIPS_INCLUDE) -I$(BYTE_SWAP_INCLUDE)
+ARFLAGS=-r
+

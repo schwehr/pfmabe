@@ -1,0 +1,643 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Pure File Magic Data Structure</title>
+    <meta name="GENERATOR" content="OpenOffice.org 3.1 (Linux)">
+    <meta name="AUTHOR" content="Jan Depner">
+    <meta name="CREATED" content="20061113;13135300">
+    <meta name="CHANGED" content="20110111;10551600">
+    <meta name="Info 1" content="">
+    <meta name="Info 2" content="">
+    <meta name="Info 3" content="">
+    <meta name="Info 4" content="">
+    <style type="text/css">
+	<!--
+		@page { margin: 0.79in }
+		P { margin-bottom: 0.08in; direction: ltr; color: #000000; text-align: left; widows: 0; orphans: 0 }
+		P.western { font-family: "Bitstream Vera Serif", serif; font-size: 12pt; so-language: en-US }
+		P.cjk { font-family: "Bitstream Vera Sans"; font-size: 12pt; so-language: en-US }
+		P.ctl { font-family: "Lucidasans"; font-size: 12pt; so-language: en-US }
+		H1 { margin-bottom: 0.08in; direction: ltr; color: #000000; text-align: left; widows: 0; orphans: 0 }
+		H1.western { font-family: "Bitstream Vera Sans", sans-serif; font-size: 16pt; so-language: en-US }
+		H1.cjk { font-family: "Mincho", "msmincho"; font-size: 16pt; so-language: en-US }
+		H1.ctl { font-family: "Lucidasans"; font-size: 16pt; so-language: en-US }
+		H2 { margin-bottom: 0.08in; direction: ltr; color: #000000; text-align: left; widows: 0; orphans: 0 }
+		H2.western { font-family: "Bitstream Vera Sans", sans-serif; font-size: 14pt; so-language: en-US; font-style: italic }
+		H2.cjk { font-family: "Mincho", "msmincho"; font-size: 14pt; so-language: en-US; font-style: italic }
+		H2.ctl { font-family: "Lucidasans"; font-size: 14pt; so-language: en-US; font-style: italic }
+		BLOCKQUOTE { direction: ltr; color: #000000; text-align: left; widows: 0; orphans: 0 }
+		BLOCKQUOTE.western { font-family: "Bitstream Vera Serif", serif; font-size: 12pt; so-language: en-US }
+		BLOCKQUOTE.cjk { font-family: "Bitstream Vera Sans"; font-size: 12pt; so-language: en-US }
+		BLOCKQUOTE.ctl { font-family: "Lucidasans"; font-size: 12pt; so-language: en-US }
+		TT { font-family: "Bitstream Vera Sans Mono", monospace }
+	-->
+	</style>
+  </head>
+  <body dir="LTR" style="background-color: rgb(255, 255, 255); color:
+    rgb(0, 0, 0);" lang="en-US">
+    <h1 style="text-align: center;" class="western"><br>
+    </h1>
+    <h1 style="text-align: center;" class="western"><big><big><font
+            face="Times New Roman, serif">Pure File Magic (PFM) Data
+            Structure</font></big></big></h1>
+    <p class="western" align="JUSTIFY"><br>
+      <br>
+    </p>
+    <h3 class="western"><big><font face="Times New Roman, serif">Introduction</font></big></h3>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"> <big>The
+          Pure File Magic data structure was originally designed to
+          allow hydrographers to geographically view minimum, maximum,
+          and average binned surfaces, of whatever bin size they chose,
+          and then allow them to edit the actual depth values that
+          contributed to that bin. After editing the depth data, the
+          bins would be recomputed and the binned surface redisplayed.
+          The idea being that the hydrographer could view the min or max
+          binned surface to find outliers and then edit just those areas
+          that required it. In addition to manual viewing and hand
+          editing, the PFM format is helpful for automatic filtering.
+          After editing of data is complete the status information can
+          be transferred back into the original data files. At present
+          there are 41 different file types that are supported either by
+          the Naval Oceanographic Office, SAIC, or IVS in their
+          respective loader/unloaders.</big></font></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"> <br>
+      <br>
+    </p>
+    <h3 class="western"><big><font face="Times New Roman, serif">The
+          File Structure</font></big></h3>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"> <big>The
+          PFM data structure consists of a number of directories and
+          files. At it's simplest it can be viewed as a single .pfm
+          handle file and a .pfm.data data directory. Inside the data
+          directory are a number of other files and directories. In
+          general terms, the PFM structure consists of an ASCII control
+          file (.ctl) containing the names of all of the associated PFM
+          and non-PFM files and directories, a binned surface file
+          (.bin) containing all of the binned surfaces and links to the
+          indexed data, an indexed file (.ndx) containing the original
+          input data and status information, and an optional line file
+          (.lin) containing line names. A simple graphical overview of
+          the structure follows. Note that the diagram does not show the
+          handle file. Also, all binary data in the bin and ndx files
+          are stored as bit-packed, scaled/offset, unsigned integers
+          (the number of bits, scale, and offset used for each field are
+          stored in the bin header).</big></font></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"> <br>
+      <br>
+    </p>
+    <div style="text-align: center;"><img style="width: 840px; height:
+        864px;" alt="" title="PFM data structure" src="PFM.png"><br
+        clear="LEFT">
+    </div>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"> <big>You
+          can think of the bin files as a giant grid where each grid
+          cell has a bin record associated with it.&nbsp; The bin
+          records are stored west to east, south to north.&nbsp; That
+          is, the first bin record stored in the file (0, 0) is the bin
+          in the lower left (southwest) corner of the area.&nbsp; The
+          next record is the bin to the immediate right (east).&nbsp;
+          This continues to the eastern end of the area and then moves
+          up one row.&nbsp; As can be seen by the above diagram, PFM
+          allows for very quick access to any data based on its
+          geographic location within the binned surface. In addition,
+          the original input file/record/sub-record can be accessed
+          easily by using the file number, ping (record) number, and
+          beam (sub-record) number from the index file in combination
+          with the input file name from the ctl file.<br>
+        </big></font></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"><font face="Times New Roman, serif"><br>
+      </font></p>
+    <h3 class="western"><big><font face="Times New Roman, serif">The
+          Handle File and Data Directory</font></big></h3>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"><font
+          size="3"> <big>The handle file (.pfm) is a very small file
+            that is created when we build the PFM structure. Its purpose
+            is to work as a handle for the data directory. There is only
+            one line that is required in the handle file and that is the
+            version line. The version line is always the first line in
+            the file. All other lines must be comments and must begin
+            with the # character. The data directory contains all of the
+            actual PFM data files/directories (see below). We use a
+            handle file to make file dialogs easier to build and
+            comprehend. The data directory is given the same name plus a
+            .data extension. For example, if the handle name was </big></font></font><big><font
+          face="Times New Roman, serif"><font size="3"><big><i><b>/data1/datasets/okinawa/fred.pfm</b></i></big></font></font><font
+          face="Times New Roman, serif"><font size="3"><big>, then the
+              data directory would be </big></font></font><font
+          face="Times New Roman, serif"><font size="3"><big><i><b>/data1/datasets/okinawa/fred.pfm.data</b></i></big></font></font><font
+          face="Times New Roman, serif"><font size="3"><big>.</big></font></font></big></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"> <br>
+      <br>
+    </p>
+    <h3 class="western"><big><font face="Times New Roman, serif">The ctl
+          File </font><font face="Times New Roman, serif"><i>&lt;pfm
+            handle file&gt;.ctl)</i></font></big></h3>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"><font
+          size="3"><big>The ctl file is a text file containing the full
+            path names of the output and input files. The advantage of
+            this text file is that it can be edited if the location of
+            the files changes after the initial PFM structure creation.
+            This text file is placed in the data directory. It will be
+            created with the same name as the PFM handle file, for
+            instance, if you named the PFM handle file </big></font></font><font
+        face="Times New Roman, serif"><font size="3"><big><i><b>/data1/datasets/sftf.pfm</b></i></big></font></font><font
+        face="Times New Roman, serif"><font size="3"><big> then the ctl
+            file will be </big></font></font><font face="Times New
+        Roman, serif"><font size="3"><big><i><b>/data1/datasets/sftf.pfm.data/sftf.pfm.ctl</b></i></big></font></font><font
+        face="Times New Roman, serif"><font size="3"><big>. The bin and
+            ndx file names are saved in the PFM .ctl file in order to
+            maintain backward compatibility with earlier versions
+            (pre-4.5) of PFM that didn't place all of the files in the
+            same directory.&nbsp; Following the bin and ndx file names
+            is a mosaic file name.&nbsp; In the case of the PFM
+            Area-Based Editor (ABE)&nbsp; this is the name of an
+            associated GeoTIFF file but other software may use it for
+            different purposes.&nbsp; Following that is a feature
+            file.&nbsp; This was originally referred to as a target
+            file.&nbsp; The type of file placed here depends on the type
+            of software being used.&nbsp; The ABE expexts a Binary
+            Feature Data (BFD) file.&nbsp; The mosaic and feature file
+            slots may contain the word <span style="font-weight: bold;
+              font-style: italic;">NONE</span> to indicate that there is
+            no associated mosaic or feature file.</big></font></font> </p>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p style="margin-left: 40px;" class="western"><font face="Times New
+        Roman, serif"><font size="3">Sample</font></font><font
+        face="Times New Roman, serif"><font size="4"> Ctl file:</font></font><font
+        face="Times New Roman, serif"> </font><br>
+    </p>
+    <blockquote class="western"><tt><font face="Luxi Mono"><font
+            size="2"><b>PFM Software - PFM I/O library V4.71 - 04/23/06<br>
+/data1/tags1/test_990508_2/em3000/test.pfm.data/test.pfm.bin<br>
+/data1/tags1/test_990508_2/em3000/test.pfm.data/test.pfm.ndx<br>
+              /data1/tags1/test_990508_2/em3000/liberty.tif<br>
+              /data1/tags1/test_990508_2/em3000/liberty.bfd<br>
+              + 00000 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281726.d01<br>
+              + 00001 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281738.d01<br>
+              + 00002 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281742.d01<br>
+              + 00003 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281753.d01<br>
+              - 00004 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281813.d01<br>
+              + 00005 02
+              /data1/tags1/test_990508_2/em3000/99mbg991281816.d01<br>
+            </b></font></font></tt><br>
+      <br>
+    </blockquote>
+    <blockquote class="western" style="margin-left: 0.5in; margin-right:
+      0.5in; text-align: justify;"> <br>
+      <big><font face="Times New Roman, serif"><font size="3"><big>The +
+              sign in the first column signifies a file that has not
+              been marked as </big></font></font><font face="Times New
+          Roman, serif"><font size="3"><big>"deleted" in the PFM
+              structure. The - sign signifies that a file has been
+              "deleted". Files that are marked as “deleted” have had
+              PFM_DELETED set in the status information for each data
+              point for that file in the indexed file. These points
+              should be completely ignored by any applications that use
+              the PFM data. The first number is a sequence number. This
+              is used to make sure that a user has not inadvertently (or
+              vertently for that matter ;-) deleted a line from the list
+              file. File names must never be deleted or added to this
+              file nor may the order of the files be changed manually
+              (using an editor).</big></font></font><font
+          color="#ff0000"><font face="Times New Roman, serif"><font
+              size="3"><big><b> </b></big></font></font></font><font
+          color="#000000"><font face="Times New Roman, serif"><font
+              size="3"><big>The second number is the data type. Do not
+                ever manually change the +/- or the data type. The
+                currently defined data types are as follows:</big></font></font></font></big><font
+        face="Times New Roman, serif"><font size="3"> <br>
+        </font></font> </blockquote>
+    <blockquote class="western"><br>
+      <br>
+    </blockquote>
+    <p class="western" style="margin-left: 0.49in;"><tt> <font size="2"><b>PFM_UNDEFINED_DATA
+
+            = Undefined<br>
+            PFM_CHRTR_DATA = NAVOCEANO CHRTR format<br>
+            PFM_GSF_DATA = Generic Sensor Format<br>
+            PFM_SHOALS_OUT_DATA = Optech SHOALS .out format<br>
+            PFM_CHARTS_HOF_DATA = CHARTS Hydrographic Output Format<br>
+            PFM_NAVO_ASCII_DATA = NAVOCEANO ASCII XYZ format<br>
+            PFM_HTF_DATA = Royal Australian Navy HTF<br>
+            PFM_WLF_DATA = Waveform LIDAR Format<br>
+            PFM_DTM_DATA = IVS DTM data format<br>
+            PFM_HDCS_DATA = Caris HDCS data format<br>
+            PFM_ASCXYZ_DATA = Ascii XYZ data format<br>
+            PFM_CNCBIN_DATA = C&amp;C Binary XYZ data format<br>
+            PFM_STBBIN_DATA = STB Binary XYZ data format<br>
+            PFM_XYZBIN_DATA = IVS XYZ Binary data format<br>
+            PFM_OMG_DATA = OMG Merged data format<br>
+            PFM_CNCTRACE_DATA = C&amp;C Trace data format<br>
+            PFM_NEPTUNE_DATA = Simrad Neptune data format<br>
+            PFM_SHOALS_1K_DATA = Shoals 1K(HOF) data format<br>
+            PFM_SHOALS_ABH_DATA = Shoals Airborne data format<br>
+            PFM_SURF_DATA = Altas SURF data format<br>
+            PFM_SMF_DATA = French Carribes format<br>
+            PFM_VISE_DATA = Danish FAU data format<br>
+            PFM_PFM_DATA = NAVOCEANO PFM data format<br>
+            PFM_MIF_DATA = MapInfo MIF format<br>
+            PFM_SHOALS_TOF_DATA = Shoals TOF data format<br>
+            PFM_UNISIPS_DEPTH_DATA = UNISIPS depth data format<br>
+            PFM_HYD93B_DATA = Hydro93 Binary data format<br>
+            PFM_LADS_DATA = Lads Lidar data format<br>
+            PFM_HS2_DATA = Hypack data format<br>
+            PFM_9COLLIDAR = 9 Column Ascii Lidar data format<br>
+            PFM_FGE_DATA = Danish Geographic FAU data format<br>
+            PFM_PIVOT_DATA = SHOM Pivot data format<br>
+            PFM_MBSYSTEM_DATA = MBSystem data format<br>
+            PFM_LAS_DATA = LAS data format<br>
+            PFM_BDI_DATA = Swedish Binary DIS format<br>
+            PFM_NAVO_LLZ_DATA = NAVO lat/lon/depth data format<br>
+            PFM_LADSDB_DATA = Lads Database Link format<br>
+            PFM_DTED_DATA = NGA DTED format<br>
+            PFM_HAWKEYE_DATA = Hawkeye CSS Generic Binary Output Format<br>
+            PFM_CZMIL_DATA = Coastal Zone Mapping and Imaging LIDAR
+            Format<br>
+            PFM_BAG_DATA = Bathymetric Attributed Grid format</b></font></tt></p>
+    <p class="western"><br>
+      <br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"><tt><font face="Times New Roman, serif"><font
+            size="3"><b> </b></font></font></tt><big><tt><font
+            face="Times New Roman, serif"><font size="3"><big><span
+                  style="font-weight: normal;">Note that the exact way
+                  that these data types have been loaded is dependent on
+                  the loader used. The vast majority of these were
+                  defined by IVS. In some cases (GSF, HOF, TOF) the way
+                  the data are loaded has been agreed upon by IVS, SAIC,
+                  and NAVOCEANO. If you wish to define a new data type
+                  you must inform all interested parties so that we do
+                  not have a data type “collision”.</span></big></font></font></tt></big></p>
+    <p class="western"><br>
+      <br>
+    </p>
+    <h3 class="western"><big>The Line File <font face="Times New Roman,
+          serif"><i>&lt;pfm handle file&gt;.lin)</i></font></big></h3>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"><font
+          size="3"> <big>The line file is a text file containing line
+            descriptor information. As with the ctl file this file can
+            be edited to change the line descriptions. This file is
+            always called </big></font></font><big><font face="Times
+          New Roman, serif"><font size="3"><big><i><b>&lt;pfm handle
+                  file&gt;.lin</b></i></big></font></font></big><font
+        face="Times New Roman, serif"><font size="3"><big>. Accidentally
+            (or purposely) removing this file is not a problem since the
+            contents are only labels. If this file doesn't exist (as
+            with a PFM 3.0 file) lines are listed as UNDEFINED.</big><br>
+        </font></font></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"><font face="Times New Roman, serif"><font size="3"><br>
+        </font></font></p>
+    <div style="margin-left: 40px;"><font face="Times New Roman, serif"><font
+          size="3">Sample Line file: </font></font><br>
+    </div>
+    <blockquote class="western"><tt><b>99mbg991281721.d01-000</b></tt> <br>
+      <tt><b>99mbg991281721.d01-001</b></tt> <br>
+      <tt><b>99mbg991281726.d01-000</b></tt> <br>
+      <tt><b>99mbg991281726.d01-001</b></tt> <br>
+      <tt><b>99mbg991281726.d01-002</b></tt> <br>
+      <tt><b>99mbg991281726.d01-003</b></tt> <br>
+      <tt><b>99mbg991281738.d01-000</b></tt> <br>
+      <tt><b>99mbg991281738.d01-001</b></tt> <br>
+      <tt><b>99mbg991281742.d01-000</b></tt> <br>
+      <tt><b>99mbg991281742.d01-001</b></tt> <br>
+      <tt><b>99mbg991281742.d01-002</b></tt> <br>
+      <tt><b>99mbg991281742.d01-003</b></tt> <br>
+      <tt><b>99mbg991281742.d01-004</b></tt> <br>
+      <tt><b>99mbg991281742.d01-005</b></tt> <br>
+      <tt><b>99mbg991281742.d01-006</b></tt> <br>
+      <tt><b>99mbg991281742.d01-007</b></tt> <br>
+      <tt><b>99mbg991281742.d01-008</b></tt> <br>
+      <tt><b>99mbg991281742.d01-009</b></tt></blockquote>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"> <font face="Times New Roman, serif"><font
+          size="3"> <br>
+        </font></font></p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"> <font face="Times New Roman, serif"><font
+          size="3"><big>These line file entries were automatically
+            generated. If you wanted to change one to be something else
+            just edit the file and change "99mbg991281742.d01-007" to be
+            "This line really sucks!". </big></font></font><br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"><br>
+      <br>
+    </p>
+    <h3 class="western"><big><font face="Times New Roman, serif">The Bin
+          File </font><font face="Times New Roman, serif"><i>(&lt;pfm
+            handle file&gt;.bin)</i></font></big></h3>
+    <p class="western"><br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"><font
+          size="3"> <big>The bin file at present is actually a
+            directory. The reason for this madness is that Microsoft,
+            which is one of the target OSes, did not support the POSIX
+            standard LARGEFILE64_SOURCE when this software was first
+            written so it couldn't handle files larger than 2GB. In
+            order to overcome this limitation we use a directory instead
+            of a file. The directory contains a file named "config" and
+            one or more files named "hugefile.XXX". The hugefiles will
+            be numbered from 000 up to the max number of files needed
+            for the dataset (at present the max is 128). For all
+            practical purposes the directory can be considered to be a
+            file (and will actually be a file whenever we move to
+            version 6). The data in each bin record in the bin file
+            includes minimum filtered depth, maximum filtered depth,
+            average filtered depth, minimum depth, maximum depth,
+            average depth, number of soundings, standard deviation, a
+            validity field, and (optionally) up to ten attributes. The
+            average filtered depth field may be replaced with some other
+            surface (such as a minimum curvature spline interpolated
+            surface (MISP)) but the name of the average filtered surface
+            ([AVERAGE FILTERED NAME] or [AVERAGE EDITED NAME]) must be
+            changed in the bin header so that the library doesn't
+            automatically try to insert the average value on recompute.
+            The header of the bin file contains descriptive parameters
+            for the bin file. This is a sample bin file header: </big></font></font><br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"><br>
+      <br>
+    </p>
+    <blockquote class="western"><tt><b>[VERSION] = PFM Software - PFM
+          I/O library V5.39 - 09/16/11<br>
+          [RECORD LENGTH] = 6<br>
+          [DATE] = Tue Oct 18 15:20:44 2011<br>
+          [CLASSIFICATION] = UNCLASSIFIED<br>
+          [MIN Y] = 30.162500000<br>
+          [MIN X] = -88.759722222<br>
+          [MAX Y] = 30.169446352<br>
+          [MAX X] = -88.744440674<br>
+          [BIN SIZE XY] = 2.000102817037066<br>
+          [X BIN SIZE] = 0.000020762972994<br>
+          [Y BIN SIZE] = 0.000018042473833<br>
+          [BIN WIDTH] = 736<br>
+          [BIN HEIGHT] = 385<br>
+          [MIN FILTERED DEPTH] = 6.600006<br>
+          [MAX FILTERED DEPTH] = 20.349976<br>
+          [MIN FILTERED COORD] = 452,140<br>
+          [MAX FILTERED COORD] = 417,130<br>
+          [MIN DEPTH] = 6.600006<br>
+          [MAX DEPTH] = 20.349976<br>
+          [MIN COORD] = 452,140<br>
+          [MAX COORD] = 417,130<br>
+          [COUNT BITS] = 24<br>
+          [STD BITS] = 32<br>
+          [STD SCALE] = 1000000.000000<br>
+          [DEPTH BITS] = 18<br>
+          [DEPTH SCALE] = 100.000000<br>
+          [DEPTH OFFSET] = 500.000000<br>
+          [RECORD POINTER BITS] = 38<br>
+          [FILE NUMBER BITS] = 13<br>
+          [LINE NUMBER BITS] = 15<br>
+          [PING NUMBER BITS] = 31<br>
+          [BEAM NUMBER BITS] = 16<br>
+          [OFFSET BITS] = 10<br>
+          [VALIDITY BITS] = 18<br>
+          [POINT] = 30.169444444,-88.759722222<br>
+          [POINT] = 30.162500000,-88.759722222<br>
+          [POINT] = 30.162500000,-88.744444444<br>
+          [POINT] = 30.169444444,-88.744444444<br>
+          [MINIMUM BIN COUNT] = 1<br>
+          [MAXIMUM BIN COUNT] = 607<br>
+          [MIN COUNT COORD] = 502,11<br>
+          [MAX COUNT COORD] = 583,124<br>
+          [MIN STANDARD DEVIATION] = 0.000000<br>
+          [MAX STANDARD DEVIATION] = 2.874570<br>
+          [CHART SCALE] = 0.000000<br>
+          [CLASS TYPE] = 0<br>
+          [PROJECTION] = 0<br>
+          [PROJECTION ZONE] = 0<br>
+          [HEMISPHERE] = 0<br>
+          [PROJECTION PARAMETER 0] = 0.000<br>
+          [PROJECTION PARAMETER 1] = 0.000<br>
+          [PROJECTION PARAMETER 2] = 0.000000000000<br>
+          [PROJECTION PARAMETER 3] = 0.000000000000<br>
+          [PROJECTION PARAMETER 4] = 0.000000000000<br>
+          [PROJECTION PARAMETER 5] = 0.000000000000<br>
+          [PROJECTION PARAMETER 6] = 0.000000000000<br>
+          [PROJECTION PARAMETER 7] = 0.000000000000<br>
+          [PROJECTION PARAMETER 8] = 0.000000000000<br>
+          [PROJECTION PARAMETER 9] = 0.000000000000<br>
+          [PROJECTION PARAMETER 10] = 0.000000000000<br>
+          [PROJECTION PARAMETER 11] = 0.000000000000<br>
+          [PROJECTION PARAMETER 12] = 0.000000000000<br>
+          [PROJECTION PARAMETER 13] = 0.000000000000<br>
+          [PROJECTION PARAMETER 14] = 0.000000000000<br>
+          [PROJECTION PARAMETER 15] = 0.000000000000<br>
+          [AVERAGE FILTERED NAME] = AVERAGE MISP SURFACE<br>
+          [AVERAGE NAME] = Average Depth<br>
+          [DYNAMIC RELOAD] = 1<br>
+          [NUMBER OF BIN ATTRIBUTES] = 6<br>
+          [BIN ATTRIBUTE 0] = ###0<br>
+          [BIN ATTRIBUTE 1] = ###1<br>
+          [BIN ATTRIBUTE 2] = ###2<br>
+          [BIN ATTRIBUTE 3] = ###3<br>
+          [BIN ATTRIBUTE 4] = ###4<br>
+          [BIN ATTRIBUTE 5] = ###5<br>
+          [BIN ATTRIBUTE 6] =<br>
+          [BIN ATTRIBUTE 7] =<br>
+          [BIN ATTRIBUTE 8] =<br>
+          [BIN ATTRIBUTE 9] =<br>
+          [BIN ATTRIBUTE OFFSET 0] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 1] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 2] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 3] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 4] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 5] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 6] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 7] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 8] = 0.000000<br>
+          [BIN ATTRIBUTE OFFSET 9] = 0.000000<br>
+          [BIN ATTRIBUTE MAX 0] = 100.000000<br>
+          [BIN ATTRIBUTE MAX 1] = 100.000000<br>
+          [BIN ATTRIBUTE MAX 2] = 100.000000<br>
+          [BIN ATTRIBUTE MAX 3] = 32000.000000<br>
+          [BIN ATTRIBUTE MAX 4] = 100.000000<br>
+          [BIN ATTRIBUTE MAX 5] = 100.000000<br>
+          [BIN ATTRIBUTE MAX 6] = 0.000000<br>
+          [BIN ATTRIBUTE MAX 7] = 0.000000<br>
+          [BIN ATTRIBUTE MAX 8] = 0.000000<br>
+          [BIN ATTRIBUTE MAX 9] = 0.000000<br>
+          [BIN ATTRIBUTE NULL 0] = 101.000000<br>
+          [BIN ATTRIBUTE NULL 1] = 101.000000<br>
+          [BIN ATTRIBUTE NULL 2] = 101.000000<br>
+          [BIN ATTRIBUTE NULL 3] = 32001.000000<br>
+          [BIN ATTRIBUTE NULL 4] = 101.000000<br>
+          [BIN ATTRIBUTE NULL 5] = 101.000000<br>
+          [BIN ATTRIBUTE NULL 6] = 0.000000<br>
+          [BIN ATTRIBUTE NULL 7] = 0.000000<br>
+          [BIN ATTRIBUTE NULL 8] = 0.000000<br>
+          [BIN ATTRIBUTE NULL 9] = 0.000000<br>
+          [MINIMUM BIN ATTRIBUTE 0] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 0] = 100.000000<br>
+          [MINIMUM BIN ATTRIBUTE 1] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 1] = 100.000000<br>
+          [MINIMUM BIN ATTRIBUTE 2] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 2] = 100.000000<br>
+          [MINIMUM BIN ATTRIBUTE 3] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 3] = 32000.000000<br>
+          [MINIMUM BIN ATTRIBUTE 4] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 4] = 100.000000<br>
+          [MINIMUM BIN ATTRIBUTE 5] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 5] = 100.000000<br>
+          [MINIMUM BIN ATTRIBUTE 6] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 6] = 0.000000<br>
+          [MINIMUM BIN ATTRIBUTE 7] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 7] = 0.000000<br>
+          [MINIMUM BIN ATTRIBUTE 8] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 8] = 0.000000<br>
+          [MINIMUM BIN ATTRIBUTE 9] = 0.000000<br>
+          [MAXIMUM BIN ATTRIBUTE 9] = 0.000000<br>
+          [BIN ATTRIBUTE BITS 0] = 7<br>
+          [BIN ATTRIBUTE BITS 1] = 14<br>
+          [BIN ATTRIBUTE BITS 2] = 14<br>
+          [BIN ATTRIBUTE BITS 3] = 15<br>
+          [BIN ATTRIBUTE BITS 4] = 14<br>
+          [BIN ATTRIBUTE BITS 5] = 14<br>
+          [BIN ATTRIBUTE BITS 6] = 0<br>
+          [BIN ATTRIBUTE BITS 7] = 0<br>
+          [BIN ATTRIBUTE BITS 8] = 0<br>
+          [BIN ATTRIBUTE BITS 9] = 0<br>
+          [BIN ATTRIBUTE SCALE 0] = 1.000000<br>
+          [BIN ATTRIBUTE SCALE 1] = 100.000000<br>
+          [BIN ATTRIBUTE SCALE 2] = 100.000000<br>
+          [BIN ATTRIBUTE SCALE 3] = 1.000000<br>
+          [BIN ATTRIBUTE SCALE 4] = 100.000000<br>
+          [BIN ATTRIBUTE SCALE 5] = 100.000000<br>
+          [BIN ATTRIBUTE SCALE 6] = 0.000000<br>
+          [BIN ATTRIBUTE SCALE 7] = 0.000000<br>
+          [BIN ATTRIBUTE SCALE 8] = 0.000000<br>
+          [BIN ATTRIBUTE SCALE 9] = 0.000000<br>
+          [NUMBER OF NDX ATTRIBUTES] = 1<br>
+          [NDX ATTRIBUTE 0] = Time (POSIX minutes)<br>
+          [NDX ATTRIBUTE 1] =<br>
+          [NDX ATTRIBUTE 2] =<br>
+          [NDX ATTRIBUTE 3] =<br>
+          [NDX ATTRIBUTE 4] =<br>
+          [NDX ATTRIBUTE 5] =<br>
+          [NDX ATTRIBUTE 6] =<br>
+          [NDX ATTRIBUTE 7] =<br>
+          [NDX ATTRIBUTE 8] =<br>
+          [NDX ATTRIBUTE 9] =<br>
+          [MINIMUM NDX ATTRIBUTE 0] = -64000000.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 0] = 64000000.000000<br>
+          [MINIMUM NDX ATTRIBUTE 1] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 1] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 2] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 2] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 3] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 3] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 4] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 4] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 5] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 5] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 6] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 6] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 7] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 7] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 8] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 8] = 0.000000<br>
+          [MINIMUM NDX ATTRIBUTE 9] = 0.000000<br>
+          [MAXIMUM NDX ATTRIBUTE 9] = 0.000000<br>
+          [NDX ATTRIBUTE BITS 0] = 27<br>
+          [NDX ATTRIBUTE BITS 1] = 0<br>
+          [NDX ATTRIBUTE BITS 2] = 0<br>
+          [NDX ATTRIBUTE BITS 3] = 0<br>
+          [NDX ATTRIBUTE BITS 4] = 0<br>
+          [NDX ATTRIBUTE BITS 5] = 0<br>
+          [NDX ATTRIBUTE BITS 6] = 0<br>
+          [NDX ATTRIBUTE BITS 7] = 0<br>
+          [NDX ATTRIBUTE BITS 8] = 0<br>
+          [NDX ATTRIBUTE BITS 9] = 0<br>
+          [NDX ATTRIBUTE SCALE 0] = 1.000000<br>
+          [NDX ATTRIBUTE SCALE 1] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 2] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 3] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 4] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 5] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 6] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 7] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 8] = 0.000000<br>
+          [NDX ATTRIBUTE SCALE 9] = 0.000000<br>
+          [USER FLAG 1 NAME] = PFM_USER_01<br>
+          [USER FLAG 2 NAME] = PFM_USER_02<br>
+          [USER FLAG 3 NAME] = PFM_USER_03<br>
+          [USER FLAG 4 NAME] = PFM_USER_04<br>
+          [USER FLAG 5 NAME] = PFM_USER_05<br>
+          [COVERAGE MAP ADDRESS] = 11917504<br>
+          [HORIZONTAL ERROR BITS] = 12<br>
+          [HORIZONTAL ERROR SCALE] = 100.000000<br>
+          [MAXIMUM HORIZONTAL ERROR] = 20.000000<br>
+          [VERTICAL ERROR BITS] = 14<br>
+          [VERTICAL ERROR SCALE] = 100.000000<br>
+          [MAXIMUM VERTICAL ERROR] = 100.000000<br>
+          [NULL DEPTH] = 1001.000000<br>
+        </b></tt><tt><b><br>
+        </b></tt><br>
+      <br>
+    </blockquote>
+    <h3 class="western"><big><font face="Times New Roman, serif">The
+          Index File (</font><font face="Times New Roman, serif"><i>&lt;pfm
+
+            handle file&gt;.ndx)</i></font></big></h3>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;
+      text-align: justify;"> <font face="Times New Roman, serif"><font
+          size="3"> <big>The index file contains all of the input data
+            points. This is the file that actually gets edited (either
+            automatically or manually). Each physical record in the
+            index file contains [RECORD LENGTH] logical records and a
+            continuation (overflow) pointer. Each logical record
+            contains the file number, line number, ping/record number,
+            beam/sub-record number, Z value (depth/elevation),
+            horizontal uncertainty, vertical uncertainty, x and y
+            position (projected or unprojected), status, and
+            (optionally) up to ten attribute values.&nbsp; All values
+            are stored as bit-packed, scaled, unsigned integers to save
+            space.&nbsp; In addition, some incidental compression is
+            being done.&nbsp; For example, the x and y positions are
+            stored as offsets from the lower left corner of the bin in
+            units of 1/4095th of the bin size.&nbsp; This allows us to
+            store the position with ridiculous resolution in 24
+            bits.&nbsp; For comparison, most systems store positions in
+            two 64 bit floating point values.</big></font></font><br>
+    </p>
+    <p class="western" style="margin-left: 0.5in; margin-right: 0.5in;"
+      align="JUSTIFY"><br>
+      <br>
+    </p>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+#
+#  bytes swapping function makefile for IRIX
+#
+CC      = cc
+CFLAGS  = -c
+
+
+
+all:
+	@make -f makefile.IRIX clean
+	@make -f makefile.IRIX byteswap.a
+	@echo " "
+
+.c.0:
+	$(CC) $(CFLAGS) $*.c
+
+byteswap.a:	byteswap.a(bytes2func.o)
+
+clean:
+	rm -f *.o *.a
+	
+			

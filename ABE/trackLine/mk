@@ -1,0 +1,112 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+    LIBRARIES="-L $PFM_LIB -lgsf -lCHARTS -lhmpsgsf -lwlf -lhawkeye -lnvutility"
+    export LD_LIBRARY_PATH=$PFM_LIB:$QTDIR/lib:$LD_LIBRARY_PATH
+else
+    DEFS="WIN32 NVWIN3X"
+    LIBRARIES="-L $PFM_LIB -lgsf -lCHARTS -lhmpsgsf -lwlf -lhawkeye -lnvutility"
+    export QMAKESPEC=win32-g++
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f trackLine.pro Makefile
+
+$QTDIR/bin/qmake -project -o trackLine.tmp
+cat >trackLine.pro <<EOF
+RC_FILE = trackLine.rc
+RESOURCES = icons.qrc
+contains(QT_CONFIG, opengl): QT += opengl
+INCLUDEPATH += $PFM_INCLUDE
+LIBS += $LIBRARIES
+DEFINES += $DEFS
+CONFIG += console
+EOF
+
+cat trackLine.tmp >>trackLine.pro
+rm trackLine.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 trackLine
+    mv trackLine $PFM_BIN
+    mkdir $PFM_BIN/pfmIcons 2>/dev/null
+    cp icons/trackLine.xpm $PFM_BIN/pfmIcons
+
+
+#   For the near future we want scripts that will replace gsf_trackline and lidar_trackline so people won't get confused. (04/20/11)
+
+    cat >$PFM_BIN/gsf_trackline <<EOF
+echo
+echo "The gsf_trackline command line program has been replaced by the"
+echo "trackLine GUI.  Please run trackLine instead."
+echo
+trackLine
+EOF
+
+    cat >$PFM_BIN/lidar_trackline <<EOF
+echo
+echo "The lidar_trackline command line program has been replaced by the"
+echo "trackLine GUI.  Please run trackLine instead."
+echo
+trackLine
+EOF
+
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 $WINMAKE/trackLine.exe
+    cp $WINMAKE/trackLine.exe $PFM_BIN
+
+
+#   For the near future we want to replace gsf_trackline and lidar_trackline so people won't get confused. (04/20/11)
+
+    cp $WINMAKE/trackLine.exe $PFM_BIN/gsf_trackline.exe
+    cp $WINMAKE/trackLine.exe $PFM_BIN/lidar_trackline.exe
+
+
+    rm $WINMAKE/trackLine.exe
+    cp icons/trackLine.ico $PFM_BIN
+fi
+
+
+# Get rid of the Makefile so there is no confusion.  It will be generated again the next time we build.
+
+rm Makefile

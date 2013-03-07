@@ -1,0 +1,38 @@
+find . -name \*.o -exec rm {} \;
+find . -name \*.o.\* -exec rm {} \;
+find . -name \*.a -exec rm {} \;
+find . -name \*.so -exec rm {} \;
+find . -name \*.dll -exec rm {} \;
+find . -name \*.exe -exec rm {} \;
+find . -name \*.la -exec rm {} \;
+find . -name moc_\* -exec rm {} \;
+find . -name \*.pro -exec rm {} \;
+find . -name \*~ -exec rm {} \;
+find . -name \*# -exec rm {} \;
+find . -name .#\* -exec rm {} \;
+find . -name \*.tmp -exec rm {} \;
+find . -name \*.ps -exec rm {} \;
+find . -name \*.srt -exec rm {} \;
+find . -name core -exec rm {} \;
+find . -name tst -exec rm {} \;
+find . -name qrc_icons.cpp -exec rm -rf {} \;
+find . -name .xvpics -exec rm -rf {} \;
+find . -name .pics -exec rm -rf {} \;
+find . -name .ee -exec rm -rf {} \;
+find . -name Makefile.Debug -exec rm -rf {} \;
+find . -name Makefile.Release -exec rm -rf {} \;
+find . -name object_script.\* -exec rm -rf {} \;
+find . -name WS_FTP\* -exec rm -rf {} \;
+
+
+find . -type d -a -name release -exec rm -rf {} \; 2>/dev/null
+find . -type d -a -name debug -exec rm -rf {} \; 2>/dev/null
+
+
+cd FOSS_libraries
+find . -type d -not -name mingw -exec rm -rf {} \; 2>/dev/null
+cd ..
+
+
+rm -rf Libraries/utility/nvutility_resource.rc
+find . -name mk -exec chmod 755 {} \;

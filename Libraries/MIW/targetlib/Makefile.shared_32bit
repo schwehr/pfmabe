@@ -1,0 +1,25 @@
+#******************************************************************************
+#
+# UNIX Configuration Builder makefile for target XML library (libtarget.a)
+#
+#******************************************************************************
+
+CC=gcc
+
+CPP=g++
+
+CFLAGS = -ansi -Wall -O
+
+CPPFLAGS = -Wno-deprecated -ansi -Wall -O
+
+OBJ0 =  CNCTDocument.o CNCTErrorHandler.o initialize.o MIWFuncs.o find_schema.o
+
+.c.o:
+	$(CC) ${CFLAGS} -c $*.c
+
+.cpp.o:
+	$(CPP) ${CPPFLAGS} -c $*.cpp
+
+libtarget: $(OBJ0)
+	gcc -shared -fPIC -Wl,-soname,libtarget.so $(OBJ0) -o libtarget.so
+

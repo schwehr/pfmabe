@@ -1,0 +1,7 @@
+#
+#  bytes swapping function makefile for Linux 
+#
+CC      = gcc
+CFLAGS = -O
+
+

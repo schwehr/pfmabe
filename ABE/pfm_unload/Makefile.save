@@ -1,0 +1,31 @@
+FILES = main.o shoals_io.o unload_file.o write_history.o gsf_flags.o
+
+INCLUDE2 = ../../Libraries/shoals
+
+INCLUDE3 = ../../Libraries/UNISIPS/unisips_io
+
+INCLUDE4 = ../../Libraries/UNISIPS/byteswap
+
+INCDIR = -I $(INCLUDE2) -I $(INCLUDE3) -I $(INCLUDE4) -I $(PFM_INCLUDE)
+
+OS := $(shell uname)
+
+ifeq ($(OS),Linux)
+
+    CFLAGS = -O -ansi -Wall -DNVLinux $(INCDIR)
+    LIBS = -L $(PFM_LIB) -lgsf -lhmpsgsf -lpfm $(PFM_LIB)/unisips_io.a $(PFM_LIB)/byteswap.a -lshoals_file -lCHARTS -lllz -lsrtm -lwlf -lhawkeye -lnvutility
+
+else
+
+    CFLAGS = -O -ansi -Wall -DXML_LIBRARY -DNVWIN3X $(INCDIR)
+    LIBS = -L $(PFM_LIB) -lgsf -lhmpsgsf -lpfm $(PFM_LIB)/unisips_io.a $(PFM_LIB)/byteswap.a -lshoals_file -lCHARTS -lllz -lsrtm -lwlf -lhawkeye -lnvutility -lwsock32
+
+endif
+
+CC = gcc
+
+.c.o:
+	  $(CC) -c $(CFLAGS) $*.c
+
+pfm_unload: $(FILES)
+	$(CC) $(FILES) $(LIBS) -lm -o pfm_unload

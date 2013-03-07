@@ -1,0 +1,19 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/areaCheck.xpm</file>
+        <file>icons/bagGeotiff.xpm</file>
+        <file>icons/bagViewer.xpm</file>
+        <file>icons/trackLine.xpm</file>
+        <file>icons/charts2LAS.xpm</file>
+        <file>icons/examGSF.xpm</file>
+        <file>icons/geoSwath3D.png</file>
+        <file>icons/abe.xpm</file>
+        <file>icons/pfmBag.xpm</file>
+        <file>icons/pfmChartsImage.xpm</file>
+        <file>icons/pfmExtract.xpm</file>
+        <file>icons/pfmFeature.xpm</file>
+        <file>icons/pfmGeotiff.xpm</file>
+        <file>icons/pfmLoad.xpm</file>
+        <file>icons/pfmView.xpm</file>
+ </qresource>
+ </RCC>

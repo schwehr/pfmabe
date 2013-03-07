@@ -1,0 +1,23 @@
+FILES = main.o
+
+OS := $(shell uname)
+
+ifeq ($(OS),Linux)
+
+    CFLAGS = -O -ansi -Wall -DNVLinux -I $(PFM_INCLUDE)
+    LIBS = -L $(PFM_LIB) -lpfm -lnvutility
+
+else
+
+    CFLAGS = -O -ansi -Wall -DNVWIN3X -I $(PFM_INCLUDE)
+    LIBS = -L $(PFM_LIB) -lpfm -lnvutility
+
+endif
+
+CC = gcc
+
+.c.o:
+	  $(CC) -c $(CFLAGS) $*.c
+
+pfm_recompute: $(FILES)
+	$(CC) $(FILES) $(LIBS) -lm -o pfm_recompute

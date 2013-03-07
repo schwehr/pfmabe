@@ -1,0 +1,38 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+#  The Linux and MINGW makeflags are the same so, rather than try to keep track of all of the variants of
+#  MINGW32_NT-WHATEVER I'm just hard wiring the machine name to Linux
+
+find . -name \*.o -exec rm {} \;
+export MACHINE=Linux
+cd byteswap
+make
+if [ $? != 0 ];then
+    exit -1
+fi
+cp byteswap.a $PFM_LIB
+rm byteswap.a
+cd ../mosaic_io
+make
+if [ $? != 0 ];then
+    exit -1
+fi
+cp mosaic_io.a $PFM_LIB
+rm mosaic_io.a
+cd ../unisips_io
+make
+if [ $? != 0 ];then
+    exit -1
+fi
+cp unisips_io.a $PFM_LIB
+rm unisips_io.a
+cd ..

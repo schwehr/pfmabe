@@ -1,0 +1,274 @@
+#include "hofReturnKill.hpp"
+
+
+/***************************************************************************\
+*                                                                           *
+*   Module Name:        pmt_return_filter                                   *
+*                                                                           *
+*   Programmer(s):      Jan C. Depner                                       *
+*                                                                           *
+*   Date Written:       January 2009                                        *
+*                                                                           *
+*   Purpose:            If the return is "insignificant" based on the       *
+*                       leading slope, the trailing slope, and the run      *
+*                       count then it will be marked as invalid.  Default   *
+*                       value for the slopes was empirically derived by     *
+*                       examining shitloads (that's a technical term) of    *
+*                       data.  The algorithm for finding qualifying runs is *
+*                       based loosely on Optech's algorithm.                *
+*                                                                           *
+*   Arguments:          sub_rec        - sub_record number (0 is primary,   *
+*                                        1 is secondary).                   *
+*                       hof_record     - the HOF record                     *
+*                       wave_header    - the wave file header               *
+*                       run_req        - run length required (default is 6) *
+*                       slope_req      - required significant slope,        *
+*                                        if the slope or backslope is less  *
+*                                        than this the hit is insignificant *
+*                                        (default 1.0)                      *
+*                                                                           *
+*   Return Value:       NV_BOOL        - NVTrue if we need to kill the      *
+*                                        return                             *
+*                                                                           *
+\***************************************************************************/
+
+NV_BOOL pmt_return_filter (NV_INT32 sub_rec, HYDRO_OUTPUT_T hof_record, WAVE_HEADER_T wave_header, NV_INT32 pmt_run_req, NV_FLOAT32 slope_req,
+                           WAVE_DATA_T wave_data)
+{
+  //  Shorthand ;^)
+
+  NV_INT32 channel = hof_record.bot_channel;
+  NV_INT32 bin = hof_record.bot_bin_first;
+  NV_INT32 sec_channel = hof_record.sec_bot_chan;
+  NV_INT32 sec_bin = hof_record.bot_bin_second;
+
+
+  //  Make sure the return we're looking for is not shallow water algorithm or shoreline depth swapped.
+
+  if ((sub_rec == 0 && (hof_record.abdc == 72 || hof_record.abdc == 74)) ||
+      (sub_rec == 1 && (hof_record.sec_abdc == 72 || hof_record.sec_abdc == 74))) return (NVFalse);
+
+
+  //  Initialize the run and slope variables for the PMT data.
+
+  NV_INT32 rise = 0;
+  NV_INT32 start_run = 0;
+  NV_INT32 drop = 0;
+  NV_INT32 start_loc = 0;
+  NV_INT32 end_loc = 0;
+  NV_INT32 start_data[2] = {0, 0};
+  NV_INT32 end_data[2] = {0, 0};
+  NV_INT32 data_rise[2] = {0, 0};
+  NV_INT32 data_run[2] = {0, 0};
+  NV_FLOAT32 slope[2] = {0.0, 0.0};
+  NV_FLOAT32 backslope[2] = {0.0, 0.0};
+  NV_INT32 count = 0;
+
+
+
+  //  Initialize the first_drop index.  We don't want to start searching for runs until we've cleared the surface
+  //  return.  This is not how Optech does it but I'm not really interested in very shallow water for this filter.
+
+  NV_INT32 first_drop = 0;
+
+
+  //  Loop through the PMT data looking for runs of increasing value that exceed "pmt_run_req".  Skip the first 20
+  //  bins so that we don't start looking in the noisy section prior to the surface return.
+
+  for (NV_INT32 i = 20 ; i < wave_header.pmt_size ; i++)
+    {
+      //  If the value is increasing...
+
+      if (first_drop && (wave_data.pmt[i] - wave_data.pmt[i - 1] > 0))
+        {
+          //  Set the start location.
+
+          if (!start_loc) start_loc = i;
+
+
+          //  Increment the run count.
+
+          rise++;
+
+
+          //  If we have not already started a run and the run count is greater than "pmt_run_req", start a new run.
+
+          if (!start_run && rise > pmt_run_req) start_run = start_loc;
+
+
+          //  Set the drop count to 0.
+
+          drop = 0;
+        }
+
+
+      //  If the value is decreasing
+
+      else if (wave_data.pmt[i] - wave_data.pmt[i - 1] < 0)
+        {
+          //  Increment the drop counter.
+
+          drop++;
+
+
+          //  Don't let a single drop point of less than magnitude two stop a run.
+
+          if (wave_data.pmt[i - drop] - wave_data.pmt[i] > 1 || drop > 1)
+            {
+              //  Set the end location.
+
+              end_loc = i;
+
+
+              //  If we have a drop of five consecutive points or a drop of magnitude greater than 1 ...
+
+              if (drop >= 5 || wave_data.pmt[i - drop] - wave_data.pmt[i] > 1)
+                {
+                  //  If we haven't already set the first drop location, set it.
+
+                  if (!first_drop)
+                    {
+                      first_drop = i;
+                    }
+                  else
+                    {
+                      //  If we have a run going of more than "pmt_run_req" points (qualifying run) ...
+
+                      if (start_run)
+                        {
+                          //  Save the start, end, run, rise, slope, and backslope values for this run.
+
+                          start_data[count] = start_run;
+                          end_data[count] = end_loc;
+                          data_run[count] = end_loc - start_loc + 1;
+                          data_rise[count] = wave_data.pmt[end_loc] - wave_data.pmt[start_run];
+                          slope[count] = (NV_FLOAT32) data_rise[count] / (NV_FLOAT32) data_run[count];
+
+
+                          //  Make sure we have enough points left to compute the backslope.
+
+                          if (i + data_run[count] > wave_header.pmt_size - 1) data_run[count] = (wave_header.pmt_size - 1) - i;
+
+
+                          //  Use either the run length or the point before the next rise to calculate backslope.
+
+                          NV_INT32 k = i + data_run[count];
+                          for (NV_INT32 j = i + 1 ; j <= i + data_run[count] ; j++)
+                            {
+                              //  Look for a rise.
+
+                              if (wave_data.pmt[j] > wave_data.pmt[j - 1])
+                                {
+                                  k = j - 1;
+                                  break;
+                                }
+                            }
+
+
+                          //  Force the backslope to be ignored if we don't have enough points to compute a decent one.
+                          //  The assumption being that if you required X rise points you want X fall points.
+
+                          if (k - i < pmt_run_req)
+                            {
+                              backslope[count] = 999.0;
+                            }
+                          else
+                            {
+                              backslope[count] = (NV_FLOAT32) (wave_data.pmt[i - drop] - wave_data.pmt[k]) / (NV_FLOAT32) (k - i);
+                            }
+
+
+                          //  Increment the qualifying run counter.
+
+                          count++;
+
+
+                          //  If we have encountered 2 qualifying runs we can stop looking at the data.
+
+                          if (count == 2) break;
+                        }
+
+
+                      //  Zero out the run count and start_run to get ready for the next qualifying run.
+
+                      rise = 0;
+                      start_run = 0;
+                    }
+                  start_loc = 0;
+                }
+            }
+        }
+    }
+
+
+  //  If we incremented to count == 2 but never got another start_run we need to decrement count.
+
+  if (count == 2 && !start_run) count--;
+
+
+  //  PMT channel primary return.
+
+  if (sub_rec == 0 && channel == PMT)
+    {
+      //  If the primary return bin is prior to the first drop (ie surface return) we want to go ahead and kill it.
+
+      if (bin < first_drop) return (NVTrue);
+
+
+      //  Loop through the qualifying runs.
+
+      for (NV_INT32 j = 0 ; j < count ; j++)
+        {
+          //  If the primary return bin is in the range of one our detected runs...
+
+          if (bin < end_data[j] && bin > start_data[j])
+            {
+              //  If the slope is greater than or equal to "slope_req", the backslope is greater than or 
+              //  equal to "slope_req", and the run length is greater than or equal to "pmt_run_req" we
+              //  want to kill the primary return.
+
+              if (data_run[j] < pmt_run_req || slope[j] < slope_req || backslope[j] < slope_req)
+                {
+                  //fprintf(stderr,"%s %d %d %d %d %d %f %f %d %d %f\n",__FILE__,__LINE__,j,bin,start_data[j],end_data[j],slope[j],backslope[j],sub_rec,channel,slope_req);
+                  return (NVTrue);
+                }
+            }
+        }
+    }
+
+
+  //  PMT channel secondary return.
+
+  if (sub_rec == 1 && sec_channel == PMT)
+    {
+      //  If the secondary return bin is prior to the first drop (ie surface return) we want to go ahead and kill it.
+
+      if (sec_bin < first_drop) return (NVTrue);
+
+
+      //  Loop through the qualifying runs.
+
+      for (NV_INT32 j = 0 ; j < count ; j++)
+        {
+          //  If the secondary return bin is in the range of one our detected runs...
+
+          if (sec_bin < end_data[j] && sec_bin > start_data[j])
+            {
+              //  If the slope is greater than or equal to "slope_req", the backslope is greater than or 
+              //  equal to "slope_req", and the run length is greater than or equal to "pmt_run_req" we
+              //  want to kill the secondary return.
+
+              if (data_run[j] < pmt_run_req || slope[j] < slope_req || backslope[j] < slope_req)
+                {
+                  //fprintf(stderr,"%s %d %d %d %d %d %f %f %d %d %f\n",__FILE__,__LINE__,j,sec_bin,start_data[j],end_data[j],slope[j],backslope[j],sub_rec,channel,slope_req);
+                  return (NVTrue);
+                }
+            }
+        }
+    }
+
+
+  //  If we got to here we didn't find anything.
+
+  return (NVFalse);
+}

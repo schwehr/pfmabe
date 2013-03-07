@@ -1,0 +1,9 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/pfmBagWatermark.png</file>
+        <file>icons/horizontal_datums.txt</file>
+        <file>icons/vertical_datums.txt</file>
+ </qresource>
+ </RCC>
+

@@ -1,0 +1,114 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+    export PFM_BIN=$PFM_ABE_DEV/bin
+    export PFM_LIB=$PFM_ABE_DEV/lib
+    export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+# Check to see if we have a static Qt library.
+
+if [ -a $QTDIR/lib/libQtCore.a ]; then
+    STATIC=static
+else
+    STATIC=""
+fi
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+    LIBRARIES="-L $PFM_LIB -lmisp -lgsf -lpfm -lstarget -lBinaryFeatureData -lwlf -lCZMIL -lCHARTS -lshp -lnvutility -lpfmWDB -lxerces-c -lgdal"
+    export LD_LIBRARY_PATH=$PFM_LIB:$QTDIR/lib:$LD_LIBRARY_PATH
+else
+    DEFS="XML_LIBRARY WIN32 NVWIN3X"
+    LIBRARIES="-L $PFM_LIB -lmisp -lgsf -lpfm -lstarget -lBinaryFeatureData -lwlf -lCZMIL -lCHARTS -lshp -lnvutility -lpfmWDB -lxerces-c -lgdal -lwsock32"
+    export QMAKESPEC=win32-g++
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+rm -f pfmView.pro Makefile
+
+$QTDIR/bin/qmake -project -o pfmView.tmp
+
+cat >pfmView.pro <<EOF
+RC_FILE = pfmView.rc
+RESOURCES = icons.qrc
+contains(QT_CONFIG, opengl): QT += opengl
+INCLUDEPATH += $PFM_INCLUDE
+LIBS += $LIBRARIES
+DEFINES += $DEFS
+DEFINES += $CZMIL_DEF
+CONFIG += console
+CONFIG += $STATIC
+EOF
+
+cat pfmView.tmp >>pfmView.pro
+rm pfmView.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 pfmView
+    mv pfmView $PFM_BIN
+    mkdir $PFM_BIN/pfmIcons 2>/dev/null
+    cp icons/pfmView.xpm $PFM_BIN/pfmIcons
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 $WINMAKE/pfmView.exe
+    cp $WINMAKE/pfmView.exe $PFM_BIN
+    rm $WINMAKE/pfmView.exe
+    cp icons/pfmView.ico $PFM_BIN
+fi
+
+
+#  Run doxygen to create the programmer documentation.
+
+DOXYTEST=`which doxygen 2>/dev/null`
+if [ -x "$DOXYTEST" ]; then
+    DOXYVERSION=`doxygen --version`
+
+    if [ $DOXYVERSION = "1.6.1" ]; then
+        rm -rf ../../Documentation/APIs_and_Programs/pfmView_Documentation
+        mkdir pfmView_Documentation
+        doxygen 2>&1>/dev/null
+        mv pfmView_Documentation ../../Documentation/APIs_and_Programs
+    fi
+fi
+
+
+# Get rid of the Makefile so there is no confusion.  It will be generated again the next time we build.
+
+rm Makefile

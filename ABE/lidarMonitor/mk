@@ -1,0 +1,80 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+    LIBRARIES="-L $PFM_LIB -lCZMIL -lCHARTS -lwlf -lhawkeye -lnvutility -lpfm"
+    export LD_LIBRARY_PATH=$PFM_LIB:$QTDIR/lib:$LD_LIBRARY_PATH
+else
+    DEFS="WIN32 NVWIN3X CZMIL_STATIC"
+    LIBRARIES="-L $PFM_LIB -lCZMIL -lCHARTS -lwlf -lhawkeye -lnvutility -lpfm"
+    export QMAKESPEC=win32-g++
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f lidarMonitor.pro Makefile
+
+$QTDIR/bin/qmake -project -o lidarMonitor.tmp
+cat >lidarMonitor.pro <<EOF
+RESOURCES = icons.qrc
+INCLUDEPATH += $PFM_INCLUDE
+LIBS += $LIBRARIES
+DEFINES += $DEFS
+DEFINES += $CZMIL_DEF
+CONFIG += console
+EOF
+
+cat lidarMonitor.tmp >>lidarMonitor.pro
+rm lidarMonitor.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 lidarMonitor
+    mv lidarMonitor $PFM_BIN
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 $WINMAKE/lidarMonitor.exe
+    cp $WINMAKE/lidarMonitor.exe $PFM_BIN
+    rm $WINMAKE/lidarMonitor.exe
+fi
+
+
+# Get rid of the Makefile so there is no confusion.  It will be generated again the next time we build.
+
+rm Makefile

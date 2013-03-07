@@ -1,0 +1,77 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux
+    LIBRARIES="-L $PFM_LIB -lCZMIL -lnvutility -lpfm"
+else
+    DEFS="WIN32 NVWIN3X"
+    LIBRARIES="-L $PFM_LIB -lCZMIL -lnvutility -lpfm"
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f CZMILwaveMonitor.pro Makefile
+
+$QTDIR/bin/qmake -project -o CZMILwaveMonitor.tmp
+cat >CZMILwaveMonitor.pro <<EOF
+contains(QT_CONFIG, opengl): QT += opengl
+RESOURCES = icons.qrc
+INCLUDEPATH += $PFM_INCLUDE
+LIBS += $LIBRARIES
+DEFINES += $DEFS
+EOF
+
+cat CZMILwaveMonitor.tmp >>CZMILwaveMonitor.pro
+rm CZMILwaveMonitor.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 CZMILwaveMonitor
+    mv CZMILwaveMonitor $PFM_BIN
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    make $WINMAKE
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 $WINMAKE/CZMILwaveMonitor.exe
+    cp $WINMAKE/CZMILwaveMonitor.exe $PFM_BIN
+    rm $WINMAKE/CZMILwaveMonitor.exe
+fi
+
+
+# Get rid of the Makefile so there is no confusion.  It will be generated again the next time we build.
+
+rm Makefile

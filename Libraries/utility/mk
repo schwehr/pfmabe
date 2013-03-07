@@ -1,0 +1,122 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+
+CHECK_QT=`echo $QTDIR | grep "qt-3"`
+if [ $CHECK_QT ] || [ !$QTDIR ]; then
+    QTDIST=`ls ../../FOSS_libraries/qt-*.tar.gz | cut -d- -f5 | cut -dt -f1 | cut -d. --complement -f4`
+    QT_TOP=Trolltech/Qt-$QTDIST
+    QTDIR=$PFM_ABE_DEV/$QT_TOP
+fi
+
+
+SYS=`uname -s`
+
+
+if [ $SYS = "Linux" ]; then
+    DEFS=NVLinux 
+    export LD_LIBRARY_PATH=$PFM_LIB:$QTDIR/lib:$LD_LIBRARY_PATH
+
+
+#   Check for a static build
+
+    if [ -a $QTDIR/lib/libQtCore.a ]; then
+        CONF=staticlib
+        DEFS="NVLinux PFM_STATIC"
+    fi
+else
+
+
+#   Check for a static build
+
+    if [ -a $QTDIR/lib/libQtCore.a ]; then
+        DEFS="XML_LIBRARY WIN32 NVWIN3X PFM_STATIC"
+    else
+        DEFS="XML_LIBRARY WIN32 NVWIN3X"
+    fi
+
+
+#   Had to make this a static library on Windoze due to my inability to make a shared version of 
+#   the feature library.  Google for __declspec and MINGW to see what's happening.
+
+    CONF=staticlib
+    export QMAKESPEC=win32-g++
+fi
+
+
+# Building the Makefile using qmake and adding extra includes, defines, and libs
+
+
+rm -f nvutility.pro Makefile
+
+
+$QTDIR/bin/qmake -project -t lib -o nvutility.tmp
+cat >nvutility.pro <<EOF
+contains(QT_CONFIG, opengl): QT += opengl
+INCLUDEPATH += $PFM_INCLUDE
+DEFINES += $DEFS
+VERSION = 2.0.0
+CONFIG += $CONF
+CONFIG += console
+EOF
+
+cat nvutility.tmp >>nvutility.pro
+rm nvutility.tmp
+
+
+$QTDIR/bin/qmake -o Makefile
+
+
+
+if [ $SYS = "Linux" ]; then
+    make
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    chmod 755 libnvutility*
+    mv libnvutility* $PFM_LIB
+else
+    if [ ! $WINMAKE ]; then
+        WINMAKE=release
+    fi
+    if [ $? != 0 ];then
+        exit -1
+    fi
+    make $WINMAKE
+    cp $WINMAKE/libnvutility.a $PFM_LIB
+    rm $WINMAKE/libnvutility.a
+fi
+
+
+chmod 644 *.h
+chmod 644 *.hpp
+
+cp *.h $PFM_INCLUDE
+cp *.hpp $PFM_INCLUDE
+
+
+#  Run doxygen to create the programmer documentation.
+
+DOXYTEST=`which doxygen 2>/dev/null`
+if [ -x "$DOXYTEST" ]; then
+    DOXYVERSION=`doxygen --version`
+
+    if [ $DOXYVERSION = "1.6.1" ]; then
+        rm -rf ../../Documentation/APIs_and_Programs/NVUTILITY_API_Documentation
+        mkdir NVUTILITY_API_Documentation
+        doxygen 2>&1>/dev/null
+        mv NVUTILITY_API_Documentation ../../Documentation/APIs_and_Programs
+    fi
+fi
+
+
+# Get rid of the Makefile so there is no confusion.  It will be generated again the next time we build.
+
+rm Makefile

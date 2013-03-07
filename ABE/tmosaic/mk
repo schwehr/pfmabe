@@ -1,0 +1,18 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+export LD_LIBRARY_PATH=$PFM_LIB:$LD_LIBRARY_PATH
+
+make
+if [ $? != 0 ];then
+    exit -1
+fi
+chmod 755 mosaic
+mv mosaic $PFM_BIN

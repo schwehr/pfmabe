@@ -1,0 +1,44 @@
+
+
+#******************************************************************************
+#
+# UNIX Configuration Builder makefile for target XML library (libtarget.a)
+#
+#******************************************************************************
+
+CC=gcc
+
+CPP=g++
+
+CFLAGS = -I $(XERCESHOME)/include -Wno-deprecated -g
+
+OBJ0 =  CNCTDocument.o CNCTErrorHandler.o initialize.o MIWFuncs.o find_schema.o
+
+.c.o:
+	$(CC) ${CFLAGS} -c $*.c
+
+.cpp.o:
+	$(CPP) ${CFLAGS} -c $*.cpp
+
+libtarget: $(OBJ0)
+	ar -r libtarget.a $(OBJ0)
+	gcc -shared $(OBJ0) -o libtarget.so
+
+
+install:
+#       for right now, the inlude files must be in a 
+#          global place.  so copy to /usr/targets/include
+#          also put lib in /usr/local/lib/targets
+	-mkdir -p /usr/local/include/targets
+	-cp -f *.h /usr/local/include/targets 
+	-cp -f libtarget.a $(SOFTWARE_DEPOT)/lib_`uname`
+	-cp -f libtarget.so $(SOFTWARE_DEPOT)/lib_`uname`
+	-mkdir -p /usr/local/lib/targets
+	-cp -f libtarget.a /usr/local/lib/targets
+	-cp -f libtarget.so /usr/local/lib/targets
+
+clean: 
+	rm $(OBJ0)
+	rm lib*.a
+	rm *~
+

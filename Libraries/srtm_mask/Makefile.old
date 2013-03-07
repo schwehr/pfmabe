@@ -1,0 +1,99 @@
+SRTM_MASK_FILES = srtm_mask.o
+
+DUMP_SRTM_TOPO_FILES = dump_srtm_topo.o
+
+SRTM1_TOPO_FILES = srtm1_topo.o
+
+SRTM2_TOPO_FILES = srtm2_topo.o dted.o
+
+SRTM3_TOPO_FILES = srtm3_topo.o
+
+SRTM30_TOPO_FILES = srtm30_topo.o
+
+THREE2THIRTY_FILES = three2thirty.o
+
+TOPO2THIRTY_FILES = topo2thirty.o
+
+THIRTY2TOPO_FILES = thirty2topo.o
+
+
+OS := $(shell uname)
+
+ifeq ($(OS),Linux)
+
+    CFLAGS = -O -Wall -ansi -DNVLinux -D_LARGEFILE64_SOURCE -L $(PFM_LIB) -I $(PFM_INCLUDE)
+    LIBS=-L $(PFM_LIB) libsrtm.a -lnvutility -lz -lm
+
+else
+
+    CFLAGS = -O -Wall -ansi -DNVWIN3X -L $(PFM_LIB) -I $(PFM_INCLUDE)
+    LIBS=-L $(PFM_LIB) libsrtm.a -lnvutility -lz -lm
+
+endif
+
+ARFLAGS=r
+
+CC = gcc
+
+.c.o:
+	$(CC) -c $(CFLAGS) $*.c
+
+
+All: libsrtm.a srtm_mask srtm1_topo srtm2_topo srtm3_topo srtm30_topo dump_srtm_topo three2thirty topo2thirty thirty2topo
+
+
+libsrtm.a:      	libsrtm.a(read_srtm1_topo.o) libsrtm.a(read_srtm3_topo.o) libsrtm.a(read_srtm2_topo.o) \
+			libsrtm.a(read_srtm30_topo.o) libsrtm.a(read_srtm_topo.o) libsrtm.a(dted.o) libsrtm.a(srtm_bit_pack.o)
+
+
+srtm_mask:  $(SRTM_MASK_FILES)
+	$(CC) $(CFLAGS) $(SRTM_MASK_FILES) $(LIBS) -o srtm_mask
+
+
+srtm1_topo:  $(SRTM1_TOPO_FILES)
+	$(CC) $(CFLAGS) $(SRTM1_TOPO_FILES) $(LIBS) -o srtm1_topo
+
+
+srtm2_topo:  $(SRTM2_TOPO_FILES)
+	$(CC) $(CFLAGS) $(SRTM2_TOPO_FILES) $(LIBS) -o srtm2_topo
+
+
+srtm3_topo:  $(SRTM3_TOPO_FILES)
+	$(CC) $(CFLAGS) $(SRTM3_TOPO_FILES) $(LIBS) -o srtm3_topo
+
+
+srtm30_topo:  $(SRTM30_TOPO_FILES)
+	$(CC) $(CFLAGS) $(SRTM30_TOPO_FILES) $(LIBS) -o srtm30_topo
+
+
+dump_srtm_topo:  $(DUMP_SRTM_TOPO_FILES)
+	$(CC) $(CFLAGS) $(DUMP_SRTM_TOPO_FILES) libsrtm.a $(LIBS) -o dump_srtm_topo
+
+
+three2thirty:  $(THREE2THIRTY_FILES)
+	$(CC) $(CFLAGS) $(THREE2THIRTY_FILES) libsrtm.a $(LIBS) -o three2thirty
+
+topo2thirty:  $(TOPO2THIRTY_FILES)
+	$(CC) $(CFLAGS) $(TOPO2THIRTY_FILES) libsrtm.a $(LIBS) -o topo2thirty
+
+thirty2topo:  $(THIRTY2TOPO_FILES)
+	$(CC) $(CFLAGS) $(THIRTY2TOPO_FILES) libsrtm.a $(LIBS) -o thirty2topo
+
+
+srtm_mask.o: 		srtm_mask_version.h
+
+srtm1_topo.o: 		srtm1_topo_version.h
+
+srtm2_topo.o: 		dted.h srtm2_topo_version.h
+
+srtm3_topo.o: 		srtm3_topo_version.h
+
+srtm30_topo.o: 		srtm30_topo_version.h
+
+dump_srtm_topo.o:       dump_srtm_topo_version.h
+
+read_srtm_topo.o:	read_srtm_topo.h read_srtm3_topo.h read_srtm30_topo.h
+
+read_srtm3_topo.o:	read_srtm3_topo.h
+
+read_srtm30_topo.o:	read_srtm30_topo.h

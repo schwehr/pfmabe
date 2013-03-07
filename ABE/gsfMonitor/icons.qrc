@@ -1,0 +1,9 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/gsf_monitor.png</file>
+        <file>icons/prefs.xpm</file>
+        <file>icons/zoom_cursor.xpm</file>
+        <file>icons/quit.xpm</file>
+ </qresource>
+ </RCC>

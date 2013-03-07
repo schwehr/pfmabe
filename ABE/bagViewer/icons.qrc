@@ -1,0 +1,26 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/noop_cursor.xpm</file>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/geo_off.xpm</file>
+        <file>icons/geo_decal.xpm</file>
+        <file>icons/geo_modulate.xpm</file>
+        <file>icons/fileopen.xpm</file>
+        <file>icons/geotiffopen.xpm</file>
+        <file>icons/prefs.xpm</file>
+        <file>icons/stop.xpm</file>
+        <file>icons/rotate.png</file>
+        <file>icons/reset_view.xpm</file>
+        <file>icons/quit.xpm</file>
+        <file>icons/bagViewer.xpm</file>
+        <file>icons/bagViewer.png</file>
+        <file>icons/rotate_cursor.xpm</file>
+        <file>icons/zoom_cursor.xpm</file>
+        <file>icons/color_by_depth.xpm</file>
+        <file>icons/stddev.xpm</file>
+        <file>icons/min.xpm</file>
+        <file>icons/avg.xpm</file>
+        <file>icons/displayfeature.xpm</file>
+        <file>icons/displayfeatureinfo.xpm</file>
+ </qresource>
+ </RCC>

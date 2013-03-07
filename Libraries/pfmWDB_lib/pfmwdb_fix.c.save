@@ -1,0 +1,197 @@
+#include "pfm.h"
+#include "gsf.h"
+#include "pfmWDB.h"
+
+NV_INT32 main (NV_INT32 argc, NV_CHAR *argv[])
+{
+  NV_CHAR l_filename[512], temp_file[512], string[1024], dflag, pfmwdb[512], pfmwdbmap[512], varin[8192], info[8192];
+  NV_INT16 type, security, datum;
+  NV_INT32 i, count, record_size, status_pos, records_pos;
+  FILE *tfp, *fp;
+  PFMWDBMAP_HEADER header;
+
+
+  /*  Check for the PFMWDB environment variable  */
+
+  if (getenv ("PFMWDB") == NULL)
+    {
+      fprintf (stderr, "The PFMWDB environment variable is not set.\nThis must point to the folder that contains the one-degree PFM files.");
+      fflush (stderr);
+      return (NVFalse);
+    }
+
+
+  strcpy (pfmwdb, getenv ("PFMWDB"));
+
+
+  sprintf (pfmwdbmap, "%s%1cPFMWDB.map", pfmwdb, SEPARATOR);
+
+
+  /*  Set the timezone to GMT.  */
+
+#ifdef NVWIN3X
+  _putenv ("TZ=GMT");
+  _tzset ();
+#else
+  putenv ("TZ=GMT");
+  tzset ();
+#endif
+
+
+  /*  Open the file.  */
+
+  if ((fp = fopen (pfmwdbmap, "rb+")) == NULL)
+    {
+      perror (pfmwdbmap);
+      exit (-1);
+    }
+
+
+  /*  We want to try to read the first line (version info) with an fread in case we mistakenly asked to load a binary file.
+      If we try to use ngets to read a binary file and there are no line feeds in the first sizeof (varin) characters we
+      would segfault since fgets doesn't check for overrun.  */
+
+  if (!fread (varin, 128, 1, fp))
+    {
+      fprintf (stderr, "The header for the file %s has been corrupted!", pfmwdbmap);
+      fflush (stderr);
+      fclose (fp);
+      fp = NULL;
+      exit (-1);
+    }
+
+
+  /*  Check the version.  */
+
+  if (!strstr (varin, "pfmWDBMap library") && !strstr (varin, "pfmWDB library"))
+    {
+      fprintf (stderr, "The header for the file %s has been corrupted!", pfmwdbmap);
+      fflush (stderr);
+      fclose (fp);
+      fp = NULL;
+      exit (-1);
+    }
+
+
+  /*  Rewind to the beginning of the file now that we know we have the right kind of file.  */
+
+  fseek (fp, 0, SEEK_SET);
+
+
+  /*  Read the version again (so we don't have to parse the string to find the line feed).  Note, we're using ngets instead
+      of fgets since we really don't want the CR and/or LF in the strings.  */
+
+  ngets (varin, sizeof (varin), fp);
+  get_string (varin, info);
+  strcpy (header.version, info);
+
+
+  /*  Now parse the rest of the header.  */
+
+  while (ngets (varin, sizeof (varin), fp))
+    {
+      if (strstr (varin, "[END OF HEADER]")) break;
+
+
+      /*  Put everything to the right of the equals sign into 'info'.   */
+
+      get_string (varin, info);
+
+      if (strstr (varin, "[CREATION DATE/TIME]")) strcpy (header.creation_date_time, info);
+      if (strstr (varin, "[MODIFICATION DATE/TIME]")) strcpy (header.modification_date_time, info);
+      if (strstr (varin, "[CLASSIFICATION]")) strcpy (header.classification, info);
+      if (strstr (varin, "[NUMBER OF RECORDS]")) sscanf (info, NV_INT64_SPECIFIER, &header.records);
+      if (strstr (varin, "[NUMBER OF FILES]")) sscanf (info, "%d", &header.files);
+      if (strstr (varin, "[HEADER SIZE]")) sscanf (info, "%d", &header.header_size);
+      if (strstr (varin, "[STATUS BITS]")) sscanf (info, "%d", &header.status_bits);
+      if (strstr (varin, "[RECORDS BITS]")) sscanf (info, "%d", &header.records_bits);
+    }
+
+
+  record_size = (header.status_bits + header.records_bits) / 8;
+  if ((header.status_bits + header.records_bits) % 8) record_size++;
+
+  status_pos = 0;
+  records_pos = status_pos + header.status_bits;
+
+
+  sprintf (temp_file, "%s%1ctemp_file", pfmwdb, SEPARATOR);
+
+  if ((tfp = fopen (temp_file, "w+")) == NULL)
+    {
+      perror (temp_file);
+      exit (-1);
+    }
+
+
+  /*  Move to where we put the file list.  */
+
+  fseek (fp, header.header_size + 64800 * record_size, SEEK_SET);
+
+  count = 0;
+  while (ngets (string, 1024, fp) != NULL)
+    {
+      sscanf (string, "%1c%s", &dflag, l_filename);
+
+      if (strstr (l_filename, ".hof"))
+        {
+          type = PFM_CHARTS_HOF_DATA;
+          security = 125;
+          datum = PFMWDB_V_DATUM_MLLW;
+        }
+      else if (strstr (l_filename, ".tof"))
+        {
+          type = PFM_SHOALS_TOF_DATA;
+          security = 125;
+          datum = PFMWDB_V_DATUM_MSL;
+        }
+      else if (strstr (l_filename, ".whf"))
+        {
+          type = PFM_WLF_DATA;
+          security = 125;
+          datum = PFMWDB_V_DATUM_MLLW;
+        }
+      else if (strstr (l_filename, ".wtf"))
+        {
+          type = PFM_WLF_DATA;
+          security = 125;
+          datum = PFMWDB_V_DATUM_MSL;
+        }
+      else
+        {
+          type = PFM_GSF_DATA;
+          security = 125;
+          datum = PFMWDB_V_DATUM_MLLW;
+        }
+
+      fprintf (tfp, "+ %05hd %05hd %05hd %s\n", type, security, datum, l_filename);
+      count++;
+    }
+
+
+  /*  Rewind the temporary file.  */
+
+  fseek (tfp, 0, SEEK_SET);
+  fseek (fp, header.header_size + 64800 * record_size, SEEK_SET);
+
+
+  /*  Read the temporary file list and replace the PFMWDB.map file list.  */
+
+  for (i = 0 ; i < count ; i++)
+    {
+      ngets (string, 1024, tfp);
+      fprintf (fp, "%s\n", string);
+    }
+
+
+  /*  Close and remove the temporary file.  */
+
+  fclose (tfp);
+  remove (temp_file);
+
+
+  fclose (fp);
+
+
+  return (0);
+}

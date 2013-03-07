@@ -1,0 +1,23 @@
+FILES = main.o misp.o
+
+OS := $(shell uname)
+
+ifeq ($(OS),Linux)
+
+    CFLAGS = -O -ansi -Wall -DNVLinux -I $(PFM_INCLUDE)
+    LIBS = -L $(PFM_LIB) -lCHARTS -lnvutility -lmisp -lsrtm -lpfm -lproj -lgdal -lxerces-c -ldl -lstdc++
+
+else
+
+    CFLAGS = -O -ansi -Wall -DNVWIN3X -I $(PFM_INCLUDE)
+    LIBS = -L $(PFM_LIB) -lCHARTS -lnvutility -lmisp -lsrtm -lpfm -lproj -lgdal -lstdc++
+
+endif
+
+CC = gcc
+
+.c.o:
+	  $(CC) -c $(CFLAGS) $*.c
+
+pfm_charts_image: $(FILES)
+	$(CC) $(FILES) $(LIBS) -lm -o pfm_charts_image

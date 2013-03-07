@@ -1,0 +1,26 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/add_feature_cursor.xpm</file>
+        <file>icons/addfeature.xpm</file>
+        <file>icons/edit_feature_cursor.xpm</file>
+        <file>icons/editfeature.xpm</file>
+        <file>icons/delete_feature_cursor.xpm</file>
+        <file>icons/deletefeature.xpm</file>
+        <file>icons/displayfeatureinfo.xpm</file>
+        <file>icons/displayfeaturepoly.xpm</file>
+        <file>icons/displayfeature.xpm</file>
+        <file>icons/displayfeaturechildren.xpm</file>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/icon_zoomin.xpm</file>
+        <file>icons/icon_zoomout.xpm</file>
+        <file>icons/zoom_cursor.xpm</file>
+        <file>icons/pencil_cursor.xpm</file>
+        <file>icons/prefs.xpm</file>
+        <file>icons/mosaicView.xpm</file>
+        <file>icons/quit.xpm</file>
+        <file>icons/coast.xpm</file>
+        <file>icons/landmask.xpm</file>
+        <file>icons/link.xpm</file>
+        <file>icons/unlink.xpm</file>
+ </qresource>
+ </RCC>

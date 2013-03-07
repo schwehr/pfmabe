@@ -1,0 +1,55 @@
+if [ ! $PFM_ABE_DEV ]; then
+
+    export PFM_ABE_DEV=${1:-"/usr/local"}
+
+fi
+
+export PFM_BIN=$PFM_ABE_DEV/bin
+export PFM_LIB=$PFM_ABE_DEV/lib
+export PFM_INCLUDE=$PFM_ABE_DEV/include
+
+export LD_LIBRARY_PATH=$PFM_LIB:$LD_LIBRARY_PATH
+
+make
+
+SYS=`uname -s`
+
+if [ $SYS = "Linux" ]; then
+    chmod 755 srtm_mask
+    mv srtm_mask $PFM_BIN
+    chmod 755 srtm1_topo
+    mv srtm1_topo $PFM_BIN
+    chmod 755 srtm2_topo
+    mv srtm2_topo $PFM_BIN
+    chmod 755 srtm3_topo
+    mv srtm3_topo $PFM_BIN
+    chmod 755 srtm30_topo
+    mv srtm30_topo $PFM_BIN
+    chmod 755 dump_srtm_topo
+    mv dump_srtm_topo $PFM_BIN
+    rm -f three2thirty
+    rm -f topo2thirty
+    rm -f thirty2topo
+else
+    chmod 755 srtm_mask.exe
+    cp srtm_mask.exe $PFM_BIN
+    rm srtm_mask.exe
+    chmod 755 srtm1_topo.exe
+    cp srtm1_topo.exe $PFM_BIN
+    rm srtm1_topo.exe
+    chmod 755 srtm2_topo.exe
+    cp srtm2_topo.exe $PFM_BIN
+    rm srtm2_topo.exe
+    chmod 755 srtm3_topo.exe
+    cp srtm3_topo.exe $PFM_BIN
+    rm srtm3_topo.exe
+    chmod 755 srtm30_topo.exe
+    cp srtm30_topo.exe $PFM_BIN
+    rm srtm30_topo.exe
+    chmod 755 dump_srtm_topo.exe
+    cp dump_srtm_topo.exe $PFM_BIN
+    rm dump_srtm_topo.exe
+    rm -f three2thirty.exe
+    rm -f topo2thirty.exe
+    rm -f thirty2topo.exe
+fi

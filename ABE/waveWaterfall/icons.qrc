@@ -1,0 +1,11 @@
+ <!DOCTYPE RCC><RCC version="1.0">
+ <qresource>
+        <file>icons/contextHelp.xpm</file>
+        <file>icons/mode_dot.xpm</file>
+        <file>icons/wave_waterfall_apd.png</file>
+        <file>icons/wave_waterfall_pmt.png</file>
+        <file>icons/prefs.xpm</file>
+        <file>icons/mode_line.xpm</file>
+        <file>icons/quit.xpm</file>
+ </qresource>
+ </RCC>

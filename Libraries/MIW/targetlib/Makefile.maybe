@@ -1,0 +1,54 @@
+OS := $(shell uname)
+
+CC = gcc
+
+LINKER = gcc
+
+OBJS = CNCTDocument.o CNCTErrorHandler.o initialize.o MIWFuncs.o find_schema.o
+
+.c.o:
+	$(CC) $(CFLAGS) -c $*.c
+
+.cpp.o:
+	$(CPP) ${CFLAGS} $*.cpp
+
+
+ifeq ($(OS),Linux)
+
+    TGT = libtarget.so
+
+    MAKEFILE = Makefile
+
+    CFLAGS = -fPIC -O -ansi -Wall -c -DNVLinux -DUNIX -DLINUX -I $(PFM_INCLUDE)
+
+    LINK_FLAGS = -shared -fPIC -Wl,-soname,$(TGT) -o $(TGT)
+
+all: $(TGT)
+{-c $(CC) $(CFLAGS) $(LINKER) $(LINK_FLAGS)} $(TGT) : $(OBJS) $(MAKEFILE)
+	$(LINKER) $(LINK_FLAGS) $(OBJS)
+	rm -f *~ *.o
+	mv libtarget.so $(PFM_LIB)
+
+endif
+
+
+ifeq ($(OS),MINGW32_NT-5.1)
+
+    TGT = libtarget.dll
+
+    TGTa = libtarget.a
+
+    CFLAGS = -O -ansi -Wall -DNVWIN3X -I $(PFM_INCLUDE)
+
+    LINK_FLAGS = -shared -o -Wl,-enable-auto-import $(TGT) -Wl,--out-implib,$(TGTa)
+
+all: $(TGT)
+{-c $(CC) $(CFLAGS) $(LINKER) $(LINK_FLAGS)} $(TGT) : $(OBJS) $(MAKEFILE)
+	$(LINKER) $(LINK_FLAGS) $(OBJS)
+	rm -f *~ *.o
+	cp libtarget.dll $(PFM_LIB)
+	rm libtarget.dll
+	cp libtarget.a $(PFM_LIB)
+	rm libtarget.a
+
+endif
